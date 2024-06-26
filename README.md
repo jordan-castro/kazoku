@@ -1,16 +1,11 @@
-# kazoku
+# Kazoku
 
-A new Flutter project.
+Create and manage your own pocket AI family!
 
-## Getting Started
+## Gemini API Competition
+This game is a submission in Googles **Gemini API Competition** #buildWithGemini
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Features
+- Built with Flutter[https://flutter.dev/]
+- Built for Android[https://www.android.com/]
+- Is a video game.
