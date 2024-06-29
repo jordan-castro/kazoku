@@ -22,6 +22,9 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
   /// Current aniomation string
   String animationString = "idle:front";
 
+  /// Current effect.
+  Effect? currentEffect;
+
   // /// Basic sprite sheet animaitons
   // late SpriteSheet basicSpriteSheet;
 
@@ -98,7 +101,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
       to: 4,
     );
 
-    size = NotifyingVector2(50, 50);
+    size = NotifyingVector2(30, 30);
 
     // TODO: Advanced sheet
   }
@@ -147,11 +150,16 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
   /// The [shouldRun] parameter is optional and indicates whether the movement
   /// should be in a running state.
   void moveTo(Vector2 position, {bool shouldRun = false}) {
-    // Determine duration needed based on shouldRun
-    double duration = 0.5;
+    if (currentEffect != null) {
+      // Remove previous effect
+      remove(currentEffect!);
+    }
+
+    // Determine speed needed based on shouldRun
+    double speed = 200;
 
     if (shouldRun) {
-      duration *= 2;
+      speed *= 2;
     }
 
     // Get difference to position from current
@@ -169,22 +177,24 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
     // }
 
     // Create the effect
-    final effect = MoveEffect.to(
+    currentEffect = MoveEffect.to(
       position,
       EffectController(
-        duration: duration,
+        speed: speed,
       ),
       onComplete: () {
         // Update position when finished.
         this.position = position;
         updateState(PlayerState.idle);
+        // Set currentEffect
+        currentEffect = null;
       },
     );
 
     // Update state
     updateState(PlayerState.walk);
     // Add effect to start
-    add(effect);
+    add(currentEffect!);
   }
 
   /// Create a state:facing string.
