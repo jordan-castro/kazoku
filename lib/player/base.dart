@@ -25,6 +25,12 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
   /// Current effect.
   Effect? currentEffect;
 
+  /// Base player speed
+  static const double baseSpeed = 200;
+
+  /// Run speed
+  static const double runSpeed = 400;
+
   // /// Basic sprite sheet animaitons
   // late SpriteSheet basicSpriteSheet;
 
@@ -115,7 +121,6 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
 
     // Update state
     this.state = state;
-    _updateAnimation();
   }
 
   /// Update player facing direction
@@ -127,7 +132,6 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
 
     // Update value
     this.facing = facing;
-    _updateAnimation();
   }
 
   /// Update animation
@@ -156,11 +160,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
     }
 
     // Determine speed needed based on shouldRun
-    double speed = 200;
-
-    if (shouldRun) {
-      speed *= 2;
-    }
+    double speed = shouldRun ? runSpeed : baseSpeed;
 
     // Get difference to position from current
     Vector2 difference = Vector2(
@@ -168,13 +168,22 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
       this.position.y - position.y,
     );
 
-    // // Check difference
-    // if (difference.x > 0) {
-    //   // Go right
-    //   updateFacing(PlayerFacing.right);
-    // } else if (difference.x < 0) {
-    //   updateFacing(PlayerFacing.left);
-    // }
+    // Which direction is the player facing?
+    if (difference.x.abs() > difference.y.abs()) {
+      // Left or right
+      if (difference.x > 0) {
+        updateFacing(PlayerFacing.left);
+      } else if (difference.x < 0) {
+        updateFacing(PlayerFacing.right);
+      }
+    } else {
+      // Y axis
+      if (difference.y > 0) {
+        updateFacing(PlayerFacing.back);
+      } else if (difference.y < 0) {
+        updateFacing(PlayerFacing.front);
+      }
+    }
 
     // Create the effect
     currentEffect = MoveEffect.to(
@@ -195,6 +204,9 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
     updateState(PlayerState.walk);
     // Add effect to start
     add(currentEffect!);
+
+    // Update animation
+    _updateAnimation();
   }
 
   /// Create a state:facing string.
