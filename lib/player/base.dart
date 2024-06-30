@@ -81,28 +81,28 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
     animations[Player.stateFacing(PlayerState.walk, PlayerFacing.front)] =
         basicSpriteSheet.createAnimation(
       row: 0,
-      stepTime: 0.5,
+      stepTime: 0.25,
       from: 2,
       to: 4,
     );
     animations[Player.stateFacing(PlayerState.walk, PlayerFacing.back)] =
         basicSpriteSheet.createAnimation(
       row: 1,
-      stepTime: 0.5,
+      stepTime: 0.25,
       from: 2,
       to: 4,
     );
     animations[Player.stateFacing(PlayerState.walk, PlayerFacing.left)] =
         basicSpriteSheet.createAnimation(
       row: 2,
-      stepTime: 0.5,
+      stepTime: 0.25,
       from: 2,
       to: 4,
     );
     animations[Player.stateFacing(PlayerState.walk, PlayerFacing.right)] =
         basicSpriteSheet.createAnimation(
       row: 3,
-      stepTime: 0.5,
+      stepTime: 0.25,
       from: 2,
       to: 4,
     );
@@ -195,6 +195,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
         // Update position when finished.
         this.position = position;
         updateState(PlayerState.idle);
+        _updateAnimation();
         // Set currentEffect
         currentEffect = null;
       },
