@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:kazoku/player/base.dart';
+import 'package:kazoku/utils/storage_manager.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
   Kazoku();
@@ -11,8 +12,14 @@ class Kazoku extends FlameGame with TapCallbacks {
   /// Is longTap
   bool isLongTap = false;
 
+  /// Is this the first time playing?
+  bool isFirstTimePlaying = true;
+
   @override
   FutureOr<void> onLoad() async {
+    // Check if we need to go from the begining.
+    isFirstTimePlaying =
+        await StorageManager.readData("isFirstTimePlaying") ?? true;
     // player = Player();
     // add(player);
   }
