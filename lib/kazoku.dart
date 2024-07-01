@@ -13,13 +13,14 @@ class Kazoku extends FlameGame with TapCallbacks {
 
   @override
   FutureOr<void> onLoad() async {
-    player = Player();
-    add(player);
+    // player = Player();
+    // add(player);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
     isLongTap = false;
+    // if ()
     player.moveTo(event.localPosition);
   }
 
