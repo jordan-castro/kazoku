@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:kazoku/kazoku.dart';
 
 class CharacterBuilder extends StatefulWidget {
+  static const name = "CharacterBuilder";
+
   final Kazoku game;
 
   const CharacterBuilder({super.key, required this.game});
@@ -13,29 +15,47 @@ class CharacterBuilder extends StatefulWidget {
 class _CharacterBuilderState extends State<CharacterBuilder> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
+    final size = MediaQuery.of(context).size;
+
+    return Center(
+      child: Container(
+        height: size.height,
+        width: size.width,
+        margin: const EdgeInsets.all(
+          20.0,
+        ),
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 22, 82, 185),
+          borderRadius: BorderRadius.all(
+            Radius.circular(20.0),
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            InkWell(
-              onTap: () {},
-              child: Stack(
-                children: [
-                  Image.asset(
-                    "assets/images/ui/button_square_border.png",
-                    width: 100,
-                    height: 50,
-                  ),
-                  const Align(
-                    alignment: Alignment.topCenter,
-                    child: Text("Body Type"),
-                  ),
-                ],
-              ),
+            Text(
+              "Kazoku - Create your character",
+              textAlign: TextAlign.center,
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text("Create"),
             )
           ],
         ),
-      ],
+      ),
+      // child: Stack(
+      //   children: [
+      //     // Image.asset(
+      //     //   "assets/images/ui/button_square_border.png",
+      //     //   width: size.width,
+      //     //   height: size.height,
+      //     //   fit: BoxFit.fill,
+      //     //   filterQuality: FilterQuality.high,
+      //     // ),
+      //   ],
+      // ),
     );
   }
 }

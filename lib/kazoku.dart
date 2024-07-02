@@ -2,33 +2,33 @@ import 'dart:async';
 
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:kazoku/gui/character_builder.dart';
 import 'package:kazoku/player/base.dart';
 import 'package:kazoku/utils/storage_manager.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
-  Kazoku();
   late Player player;
 
   /// Is longTap
   bool isLongTap = false;
 
-  /// Is this the first time playing?
-  bool isFirstTimePlaying = true;
-
   @override
-  FutureOr<void> onLoad() async {
+  Future<void> onLoad() async {
+    print("Kazoku -- onLoad");
+    player = Player();
     // Check if we need to go from the begining.
-    isFirstTimePlaying =
+    final isFirstTimePlaying =
         await StorageManager.readData("isFirstTimePlaying") ?? true;
-    // player = Player();
-    // add(player);
+
+    // If first time playing:
+    // 1. character generator
+    overlays.add(CharacterBuilder.name);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
     isLongTap = false;
-    // if ()
-    player.moveTo(event.localPosition);
+    // player.moveTo(event.localPosition);
   }
 
   @override
@@ -39,13 +39,13 @@ class Kazoku extends FlameGame with TapCallbacks {
   @override
   void onLongTapDown(TapDownEvent event) {
     isLongTap = true;
-    player.moveTo(event.localPosition, shouldRun: true);
+    // player.moveTo(event.localPosition, shouldRun: true);
   }
 
   @override
   void onTapUp(TapUpEvent event) {
     // Reset movement to not run
-    player.moveTo(event.localPosition);
+    // player.moveTo(event.localPosition);
     isLongTap = false;
   }
 }
