@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:kazoku/gui/character_builder.dart';
-import 'package:kazoku/player/base.dart';
+import 'package:kazoku/character/player/base.dart';
 import 'package:kazoku/utils/storage_manager.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {

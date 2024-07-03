@@ -5,8 +5,8 @@ import 'package:flame/effects.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:kazoku/kazoku.dart';
-import 'package:kazoku/player/facing.dart';
-import 'package:kazoku/player/state.dart';
+import 'package:kazoku/character/player/facing.dart';
+import 'package:kazoku/character/player/state.dart';
 import 'package:flame/sprite.dart';
 
 class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
