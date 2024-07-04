@@ -1,6 +1,5 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:kazoku/gui/character_builder.dart';
 import 'package:kazoku/kazoku.dart';
 
 void main() {
@@ -14,11 +13,11 @@ void main() {
         );
         // return const SplashScreen();
       },
-      overlayBuilderMap: {
-        CharacterBuilder.name: (context, game) => CharacterBuilder(
-              game: game as Kazoku,
-            ),
-      },
+      // overlayBuilderMap: {
+      //   CharacterBuilder.name: (context, game) => CharacterBuilder(
+      //         game: game as Kazoku,
+      //       ),
+      // },
     ),
   );
 }
