@@ -2,24 +2,34 @@ import 'dart:async';
 
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:kazoku/character/player/base.dart';
-import 'package:kazoku/utils/storage_manager.dart';
+import 'package:kazoku/components/character/component.dart';
+import 'package:kazoku/components/character/data.dart';
+import 'package:kazoku/utils/get_size_without_context.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
-  late Player player;
-
   /// Is longTap
   bool isLongTap = false;
 
   @override
   Future<void> onLoad() async {
     print("Kazoku -- onLoad");
-    player = Player();
-    // Check if we need to go from the begining.
-    final isFirstTimePlaying =
-        await StorageManager.readData("isFirstTimePlaying") ?? true;
-    // If first time playing:
-    // 1. character generator
+    // "assets/images/sprites/character/Body_brown.png"
+    CharacterData data = CharacterData(
+      id: "sadad",
+      name: "Jordan",
+      gender: Gender.male,
+      age: 22,
+      bodyTexture: "sprites/character/Body_Brown.png",
+      eyeTexture: "assets/images/sprites/character/Body_brown.png",
+      hairstyleTexture: "assets/images/sprites/character/Body_brown.png",
+      outfitTexture: "assets/images/sprites/character/Body_brown.png",
+    );
+    CharacterComponent character = CharacterComponent(data: data);
+    add(character);
+
+    Vector2 size = getScreenSizeWithoutContext();
+
+    character.position = Vector2(size.x / 2, size.y / 2);
   }
 
   @override

@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
-import 'package:flame/flame.dart';
+import 'package:flame/game.dart';
+import 'package:kazoku/components/character/body.dart';
 import 'package:kazoku/components/character/data.dart';
 import 'package:kazoku/utils/character_animations.dart';
 
@@ -17,10 +18,6 @@ class CharacterComponent extends PositionComponent {
   final CharacterData data;
   CharacterDirection direction = CharacterDirection.towardsCamera;
   CharacterState state = CharacterState.idle;
-  String currentAnimation = determineAnimation(
-    CharacterState.idle,
-    CharacterDirection.towardsCamera,
-  );
 
   /// Animations for a character.
   CharacterAnimations animations = {};
@@ -29,6 +26,9 @@ class CharacterComponent extends PositionComponent {
   double speed = 200;
 
   CharacterComponent({required this.data});
+
+  /// The body component
+  late BodyComponent bodyComponent;
 
   /// Convert direction and character state into a string.
   static String determineAnimation(
@@ -39,7 +39,12 @@ class CharacterComponent extends PositionComponent {
 
   @override
   FutureOr<void> onLoad() async {
-    // Load the Sprites
-    final bodySpriteSheet = await Flame.images.load("fileName");
+    // Load components
+    bodyComponent = BodyComponent(texturePath: data.bodyTexture);
+    add(bodyComponent);
+    bodyComponent.size = NotifyingVector2(100, 100);
+    bodyComponent.updateAnimation(state, direction);
+
+    // size = NotifyingVector2(100, 100);
   }
 }

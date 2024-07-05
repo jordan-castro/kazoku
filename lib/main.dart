@@ -21,18 +21,3 @@ void main() {
     ),
   );
 }
-
-// class KazokuApp extends StatelessWidget {
-//   const KazokuApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       routes: {
-//         SplashScreen.routeName: (context) => const SplashScreen(),
-//         GameScreen.routeName: (context) => const GameScreen(),
-//       },
-//       initialRoute: SplashScreen.routeName,
-//     );
-//   }
-// }

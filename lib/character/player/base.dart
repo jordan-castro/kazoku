@@ -42,7 +42,7 @@ class Player extends SpriteAnimationComponent with HasGameRef<Kazoku> {
     // Load basic sprite sheet.
     final basicSpriteSheet = SpriteSheet(
       image: await Flame.images.load(
-        "sprites/player/character.png",
+        "sprites/player/character/Body_Brown.png",
       ),
       srcSize: Vector2(14, 16),
     );
