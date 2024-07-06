@@ -18,7 +18,5 @@ class AddonComponent extends SpriteAnimationComponent {
     if (animations.containsKey(key)) {
       animation = animations[key];
     }
-
-    
   }
 }

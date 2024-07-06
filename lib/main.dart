@@ -9,7 +9,9 @@ void main() {
       game: Kazoku(),
       loadingBuilder: (context) {
         return const Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            strokeWidth: 100.0,
+          ),
         );
         // return const SplashScreen();
       },

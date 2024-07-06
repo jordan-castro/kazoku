@@ -41,10 +41,9 @@ class CharacterComponent extends PositionComponent {
   FutureOr<void> onLoad() async {
     // Load components
     bodyComponent = BodyComponent(texturePath: data.bodyTexture);
-    add(bodyComponent);
-    bodyComponent.size = NotifyingVector2(100, 100);
+    await bodyComponent.addToParent(this);
     bodyComponent.updateAnimation(state, direction);
-
-    // size = NotifyingVector2(100, 100);
   }
+
+  /// Update the position of  
 }
