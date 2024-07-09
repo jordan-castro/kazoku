@@ -29,7 +29,7 @@ class Kazoku extends FlameGame with TapCallbacks {
 
     Vector2 size = getScreenSizeWithoutContext();
 
-    // character.position = Vector2(size.x / 2, size.y / 2);
+    character.position = Vector2(size.x / 2, size.y / 2);
   }
 
   @override

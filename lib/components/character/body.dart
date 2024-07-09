@@ -13,15 +13,20 @@ class BodyComponent extends AddonComponent {
   @override
   FutureOr<void> onLoad() async {
     print("BodyComponent onLoad ---");
+    await loadAnimations();
+  }
+
+  @override
+  Future<void> loadAnimations() async {
     final spriteSheet = SpriteSheet(
       image: await Flame.images.load(
         texturePath,
       ),
-      srcSize: Vector2(30, 64),
+      srcSize: Vector2(32, 45),
     );
 
     // Step time for idle animations
-    const idleStepTime = 0.5;
+    const idleStepTime = 0.25;
 
     // Add to animations
     animations[CharacterComponent.determineAnimation(

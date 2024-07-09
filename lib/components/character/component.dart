@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
-import 'package:flame/game.dart';
 import 'package:kazoku/components/character/body.dart';
 import 'package:kazoku/components/character/data.dart';
 import 'package:kazoku/utils/character_animations.dart';
@@ -42,8 +41,6 @@ class CharacterComponent extends PositionComponent {
     // Load components
     bodyComponent = BodyComponent(texturePath: data.bodyTexture);
     await bodyComponent.addToParent(this);
-    bodyComponent.updateAnimation(state, direction);
+    bodyComponent.updateAnimation(state, CharacterDirection.right);
   }
-
-  /// Update the position of  
 }

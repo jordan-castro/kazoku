@@ -9,11 +9,8 @@ void main() {
       game: Kazoku(),
       loadingBuilder: (context) {
         return const Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 100.0,
-          ),
+          child: CircularProgressIndicator(),
         );
-        // return const SplashScreen();
       },
       // overlayBuilderMap: {
       //   CharacterBuilder.name: (context, game) => CharacterBuilder(

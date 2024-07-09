@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/components.dart';
 import 'package:kazoku/components/character/component.dart';
 
@@ -18,5 +20,10 @@ class AddonComponent extends SpriteAnimationComponent {
     if (animations.containsKey(key)) {
       animation = animations[key];
     }
+  }
+
+  /// Load the animations
+  Future<void> loadAnimations() async {
+    throw Exception("Load animations is not implemented.");
   }
 }
