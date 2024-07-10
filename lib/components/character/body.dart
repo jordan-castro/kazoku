@@ -12,7 +12,6 @@ class BodyComponent extends AddonComponent {
 
   @override
   FutureOr<void> onLoad() async {
-    print("BodyComponent onLoad ---");
     await loadAnimations();
   }
 
@@ -22,11 +21,15 @@ class BodyComponent extends AddonComponent {
       image: await Flame.images.load(
         texturePath,
       ),
-      srcSize: Vector2(32, 45),
+      srcSize: Vector2(32, 46),
     );
 
     // Step time for idle animations
     const idleStepTime = 0.25;
+    // Step for walk animations
+    const walkStepTime = 0.20;
+    // Step for run
+    const runStepTime = 0.15;
 
     // Add to animations
     animations[CharacterComponent.determineAnimation(
@@ -62,6 +65,82 @@ class BodyComponent extends AddonComponent {
     )] = spriteSheet.createAnimation(
       row: 1,
       stepTime: idleStepTime,
+      from: 18,
+      to: 23,
+    );
+
+    // walk animation
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.walk,
+      CharacterDirection.right,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: walkStepTime,
+      from: 0,
+      to: 5,
+    );
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.walk,
+      CharacterDirection.awayFromCamera,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: walkStepTime,
+      from: 6,
+      to: 11,
+    );
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.walk,
+      CharacterDirection.left,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: walkStepTime,
+      from: 12,
+      to: 17,
+    );
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.walk,
+      CharacterDirection.towardsCamera,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: walkStepTime,
+      from: 18,
+      to: 23,
+    );
+
+    // RUN animation
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.run,
+      CharacterDirection.right,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: runStepTime,
+      from: 0,
+      to: 5,
+    );
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.run,
+      CharacterDirection.awayFromCamera,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: runStepTime,
+      from: 6,
+      to: 11,
+    );
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.run,
+      CharacterDirection.left,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: runStepTime,
+      from: 12,
+      to: 17,
+    );
+    animations[CharacterComponent.determineAnimation(
+      CharacterState.run,
+      CharacterDirection.towardsCamera,
+    )] = spriteSheet.createAnimation(
+      row: 2,
+      stepTime: runStepTime,
       from: 18,
       to: 23,
     );

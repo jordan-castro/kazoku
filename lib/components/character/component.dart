@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:kazoku/components/character/body.dart';
 import 'package:kazoku/components/character/data.dart';
 import 'package:kazoku/utils/character_animations.dart';
@@ -9,7 +10,7 @@ import 'package:kazoku/utils/character_animations.dart';
 enum CharacterDirection { left, right, awayFromCamera, towardsCamera }
 
 /// Character states. (is used for the animation)
-enum CharacterState { idle, walk }
+enum CharacterState { idle, walk, run }
 
 /// The character component, All NPCs, Players, Pets, ETC. come from this
 /// component. (Player and NPC are the same only that player has more choices.)
@@ -21,13 +22,19 @@ class CharacterComponent extends PositionComponent {
   /// Animations for a character.
   CharacterAnimations animations = {};
 
-  /// The speed of this character (No Velocity)
-  double speed = 200;
-
   CharacterComponent({required this.data});
 
   /// The body component
   late BodyComponent bodyComponent;
+
+  /// Current effect.
+  Effect? currentEffect;
+
+  /// Walking speed
+  final double walkSpeed = 200;
+
+  /// Running speed
+  final double runSpeed = 400;
 
   /// Convert direction and character state into a string.
   static String determineAnimation(
@@ -42,5 +49,87 @@ class CharacterComponent extends PositionComponent {
     bodyComponent = BodyComponent(texturePath: data.bodyTexture);
     await bodyComponent.addToParent(this);
     bodyComponent.updateAnimation(state, CharacterDirection.right);
+  }
+
+  /// Move the character to a new position.
+  /// The [position] parameter represents the target position.
+  /// The [shouldRun] parameter is optional and indicates whether the movement
+  /// should be in a running state.
+  void moveTo(Vector2 position, {bool shouldRun = false}) {
+    if (currentEffect != null) {
+      // Remove previous effect
+      remove(currentEffect!);
+    }
+
+    // Determine speed needed based on shouldRun
+    double speed = shouldRun ? runSpeed : walkSpeed;
+    // Update state
+    CharacterState stateToUpdateTo =
+        shouldRun ? CharacterState.run : CharacterState.walk;
+
+    // Get difference to position from current
+    Vector2 difference = Vector2(
+      this.position.x - position.x,
+      this.position.y - position.y,
+    );
+
+    // Which direction is the player facing?
+    if (difference.x.abs() > difference.y.abs()) {
+      // Left or right
+      if (difference.x > 0) {
+        updateDirection(CharacterDirection.left);
+      } else if (difference.x < 0) {
+        updateDirection(CharacterDirection.right);
+      }
+    } else {
+      // Y axis
+      if (difference.y > 0) {
+        updateDirection(CharacterDirection.awayFromCamera);
+      } else if (difference.y < 0) {
+        updateDirection(CharacterDirection.towardsCamera);
+      }
+    }
+
+    // Create the effect
+    currentEffect = MoveEffect.to(
+      position,
+      EffectController(
+        speed: speed,
+      ),
+      onComplete: () {
+        // Update position when finished.
+        this.position = position;
+        updateState(CharacterState.idle);
+        _updateAnimation();
+        // Set currentEffect
+        currentEffect = null;
+      },
+    );
+
+    updateState(stateToUpdateTo);
+    // Add effect to start
+    add(currentEffect!);
+
+    // Update animation
+    _updateAnimation();
+  }
+
+  /// Update the satte of the character
+  void updateState(CharacterState newState) {
+    if (state != newState) {
+      state = newState;
+    }
+  }
+
+  /// Update the direction the character is facing
+  void updateDirection(CharacterDirection direction) {
+    if (this.direction != direction) {
+      this.direction = direction;
+    }
+  }
+
+  /// Update the current animation state
+  void _updateAnimation() {
+    bodyComponent.updateAnimation(state, direction);
   }
 }

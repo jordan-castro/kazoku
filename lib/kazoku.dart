@@ -10,6 +10,9 @@ class Kazoku extends FlameGame with TapCallbacks {
   /// Is longTap
   bool isLongTap = false;
 
+  /// The player
+  late CharacterComponent player;
+
   @override
   Future<void> onLoad() async {
     print("Kazoku -- onLoad");
@@ -24,18 +27,18 @@ class Kazoku extends FlameGame with TapCallbacks {
       hairstyleTexture: "assets/images/sprites/character/Body_brown.png",
       outfitTexture: "assets/images/sprites/character/Body_brown.png",
     );
-    CharacterComponent character = CharacterComponent(data: data);
-    add(character);
+    player = CharacterComponent(data: data);
+    add(player);
 
     Vector2 size = getScreenSizeWithoutContext();
 
-    character.position = Vector2(size.x / 2, size.y / 2);
+    player.position = Vector2(size.x / 2, size.y / 2);
   }
 
   @override
   void onTapDown(TapDownEvent event) {
     isLongTap = false;
-    // player.moveTo(event.localPosition);
+    player.moveTo(event.localPosition);
   }
 
   @override
@@ -46,7 +49,7 @@ class Kazoku extends FlameGame with TapCallbacks {
   @override
   void onLongTapDown(TapDownEvent event) {
     isLongTap = true;
-    // player.moveTo(event.localPosition, shouldRun: true);
+    player.moveTo(event.localPosition, shouldRun: true);
   }
 
   @override

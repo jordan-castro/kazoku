@@ -1,1 +1,0 @@
-enum PlayerFacing {front, back, left, right}
