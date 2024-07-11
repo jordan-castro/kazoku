@@ -31,9 +31,6 @@ class CharacterData {
   /// A Map of accessories [name => path to texture] this character has on.
   final Map<String, String>? accessories;
 
-  /// The Genes of this character
-  final JSON? genes;
-
   CharacterData({
     required this.id,
     required this.name,
@@ -44,21 +41,18 @@ class CharacterData {
     required this.hairstyleTexture,
     required this.outfitTexture,
     this.accessories,
-    this.genes,
   });
 
   factory CharacterData.fromJson(JSON json) {
     return CharacterData(
       id: json['id'],
       name: json['name'],
-      gender: json['gender'],
+      gender: json['gender'] == 0 ? Gender.female : Gender.male,
       age: toIntOrNull(json['age'])!,
       bodyTexture: json['bodyTexture'],
       eyeTexture: json['eyeTexture'],
       hairstyleTexture: json['hairstyleTexture'],
       outfitTexture: json['outfitTexture'],
-      accessories: json['accessories'] as Map<String, String>?,
-      genes: json['genes'],
     );
   }
 

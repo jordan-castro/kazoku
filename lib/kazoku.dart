@@ -4,7 +4,10 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:kazoku/components/character/component.dart';
 import 'package:kazoku/components/character/data.dart';
+import 'package:kazoku/utils/database.dart';
 import 'package:kazoku/utils/get_size_without_context.dart';
+import 'package:kazoku/utils/json.dart';
+import 'package:kazoku/utils/storage_manager.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
   /// Is longTap
@@ -15,19 +18,7 @@ class Kazoku extends FlameGame with TapCallbacks {
 
   @override
   Future<void> onLoad() async {
-    print("Kazoku -- onLoad");
-    // "assets/images/sprites/character/Body_brown.png"
-    CharacterData data = CharacterData(
-      id: "sadad",
-      name: "Jordan",
-      gender: Gender.male,
-      age: 22,
-      bodyTexture: "sprites/character/Body_Brown.png",
-      eyeTexture: "assets/images/sprites/character/Body_brown.png",
-      hairstyleTexture: "assets/images/sprites/character/Body_brown.png",
-      outfitTexture: "assets/images/sprites/character/Body_brown.png",
-    );
-    player = CharacterComponent(data: data);
+    player = (await loadPlayer())!;
     add(player);
 
     Vector2 size = getScreenSizeWithoutContext();
@@ -55,7 +46,22 @@ class Kazoku extends FlameGame with TapCallbacks {
   @override
   void onTapUp(TapUpEvent event) {
     // Reset movement to not run
-    // player.moveTo(event.localPosition);
+    player.moveTo(event.localPosition);
     isLongTap = false;
+  }
+
+  /// Load the player character.
+  Future<CharacterComponent?> loadPlayer() async {
+    String playerId = await StorageManager.readData("playerId");
+    JSON? characterJson = await DbHelper.instance.queryCharacter(playerId);
+
+    // The player does not exist, should create one for first time.
+    if (characterJson == null) {
+      return null;
+    }
+
+    // TODO: Load any accessories
+
+    return CharacterComponent(data: CharacterData.fromJson(characterJson));
   }
 }

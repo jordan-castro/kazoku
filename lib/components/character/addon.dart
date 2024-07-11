@@ -26,4 +26,9 @@ class AddonComponent extends SpriteAnimationComponent {
   Future<void> loadAnimations() async {
     throw Exception("Load animations is not implemented.");
   }
+
+  @override
+  FutureOr<void> onLoad() async {
+    await loadAnimations();
+  }
 }

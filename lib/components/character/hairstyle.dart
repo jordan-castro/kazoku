@@ -1,25 +1,20 @@
-import 'dart:async';
-
-import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flame/game.dart';
 import 'package:flame/sprite.dart';
 import 'package:kazoku/components/character/addon.dart';
 import 'package:kazoku/components/character/component.dart';
 
-/// The body componetn
-class BodyComponent extends AddonComponent {
-  BodyComponent({required super.texturePath});
+class HairstyleComponent extends AddonComponent {
+  HairstyleComponent({required super.texturePath});
 
   @override
   Future<void> loadAnimations() async {
-    final spriteSheet = SpriteSheet(
-      image: await Flame.images.load(
-        texturePath,
-      ),
+        final spriteSheet = SpriteSheet(
+      image: await Flame.images.load(texturePath),
       srcSize: Vector2(32, 46),
     );
 
-    // Add to animations
+    // Idle animations
     animations[CharacterComponent.determineAnimation(
       CharacterState.idle,
       CharacterDirection.right,
@@ -132,5 +127,6 @@ class BodyComponent extends AddonComponent {
       from: 18,
       to: 23,
     );
+
   }
 }

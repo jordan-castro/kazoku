@@ -4,6 +4,9 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:kazoku/components/character/body.dart';
 import 'package:kazoku/components/character/data.dart';
+import 'package:kazoku/components/character/eyes.dart';
+import 'package:kazoku/components/character/hairstyle.dart';
+import 'package:kazoku/components/character/outfit.dart';
 import 'package:kazoku/utils/character_animations.dart';
 
 /// Directions a character component can face.
@@ -11,6 +14,13 @@ enum CharacterDirection { left, right, awayFromCamera, towardsCamera }
 
 /// Character states. (is used for the animation)
 enum CharacterState { idle, walk, run }
+
+// Step time for idle animations
+const idleStepTime = 0.25;
+// Step for walk animations
+const walkStepTime = 0.20;
+// Step for run
+const runStepTime = 0.15;
 
 /// The character component, All NPCs, Players, Pets, ETC. come from this
 /// component. (Player and NPC are the same only that player has more choices.)
@@ -26,6 +36,15 @@ class CharacterComponent extends PositionComponent {
 
   /// The body component
   late BodyComponent bodyComponent;
+
+  /// The eyes component
+  late EyesComponent eyesComponent;
+
+  /// The outfit component
+  late OutfitComponent outfitComponent;
+
+  /// The hairstyle component
+  late HairstyleComponent hairstyleComponent;
 
   /// Current effect.
   Effect? currentEffect;
@@ -48,7 +67,15 @@ class CharacterComponent extends PositionComponent {
     // Load components
     bodyComponent = BodyComponent(texturePath: data.bodyTexture);
     await bodyComponent.addToParent(this);
-    bodyComponent.updateAnimation(state, CharacterDirection.right);
+    eyesComponent = EyesComponent(texturePath: data.eyeTexture);
+    await eyesComponent.addToParent(this);
+    outfitComponent = OutfitComponent(texturePath: data.outfitTexture);
+    await outfitComponent.addToParent(this);
+    hairstyleComponent = HairstyleComponent(texturePath: data.hairstyleTexture);
+    await hairstyleComponent.addToParent(this);
+
+    // Animation
+    _updateAnimation();
   }
 
   /// Move the character to a new position.
@@ -131,5 +158,8 @@ class CharacterComponent extends PositionComponent {
   /// Update the current animation state
   void _updateAnimation() {
     bodyComponent.updateAnimation(state, direction);
+    eyesComponent.updateAnimation(state, direction);
+    outfitComponent.updateAnimation(state, direction);
+    hairstyleComponent.updateAnimation(state, direction);
   }
 }
