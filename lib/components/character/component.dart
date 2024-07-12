@@ -65,13 +65,13 @@ class CharacterComponent extends PositionComponent {
   @override
   FutureOr<void> onLoad() async {
     // Load components
-    bodyComponent = BodyComponent(texturePath: data.bodyTexture);
+    bodyComponent = BodyComponent(addon: data.bodyTexture!);
     await bodyComponent.addToParent(this);
-    eyesComponent = EyesComponent(texturePath: data.eyeTexture);
+    eyesComponent = EyesComponent(addon: data.eyeTexture!);
     await eyesComponent.addToParent(this);
-    outfitComponent = OutfitComponent(texturePath: data.outfitTexture);
+    outfitComponent = OutfitComponent(addon: data.outfitTexture!);
     await outfitComponent.addToParent(this);
-    hairstyleComponent = HairstyleComponent(texturePath: data.hairstyleTexture);
+    hairstyleComponent = HairstyleComponent(addon: data.hairstyleTexture!);
     await hairstyleComponent.addToParent(this);
 
     // Animation

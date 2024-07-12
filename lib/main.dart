@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:kazoku/kazoku.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   print("Kazoku Start");
+
   runApp(
     GameWidget(
       game: Kazoku(),

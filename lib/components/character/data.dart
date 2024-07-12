@@ -1,3 +1,5 @@
+import 'package:kazoku/components/character/addon.dart';
+import 'package:kazoku/utils/database.dart';
 import 'package:kazoku/utils/json.dart';
 
 /// Gender Enum
@@ -5,7 +7,7 @@ enum Gender { male, female }
 
 class CharacterData {
   /// A unique string by which this character can be identified.
-  final String id;
+  final int id;
 
   /// The Name of this character
   final String name;
@@ -17,19 +19,19 @@ class CharacterData {
   final int age;
 
   /// The body texture path.
-  final String bodyTexture;
+  Addon? bodyTexture;
 
   /// The eye texture path.
-  final String eyeTexture;
+  Addon? eyeTexture;
 
   /// The hairstyle texture path.
-  final String hairstyleTexture;
+  Addon? hairstyleTexture;
 
   /// The outfit texture path.
-  final String outfitTexture;
+  Addon? outfitTexture;
 
   /// A Map of accessories [name => path to texture] this character has on.
-  final Map<String, String>? accessories;
+  List<Addon>? accessories;
 
   CharacterData({
     required this.id,
@@ -43,21 +45,57 @@ class CharacterData {
     this.accessories,
   });
 
-  factory CharacterData.fromJson(JSON json) {
+  factory CharacterData.fromJson(JSON json,
+      {Addon? bodyTexture,
+      Addon? eyeTexture,
+      Addon? hairstyleTexture,
+      Addon? outfitTexture}) {
     return CharacterData(
       id: json['id'],
       name: json['name'],
       gender: json['gender'] == 0 ? Gender.female : Gender.male,
       age: toIntOrNull(json['age'])!,
-      bodyTexture: json['bodyTexture'],
-      eyeTexture: json['eyeTexture'],
-      hairstyleTexture: json['hairstyleTexture'],
-      outfitTexture: json['outfitTexture'],
+      bodyTexture: bodyTexture,
+      eyeTexture: eyeTexture,
+      hairstyleTexture: hairstyleTexture,
+      outfitTexture: outfitTexture,
     );
   }
 
   /// Is this character a kid? (think toddler)
   bool isKid() {
     return age <= 4;
+  }
+
+  static Future<CharacterData?> loadCharacterFromId(int id) async {
+    final db = DbHelper.instance;
+    final characterJson = await db.queryCharacter(id);
+    print(characterJson);
+    if (characterJson == null) {
+      return null;
+    }
+
+    // We have the necessary data
+    final bodyTextureJson = await db.queryTexture(
+      characterJson[DbHelper.characterBodyTextureCol],
+    );
+    print(bodyTextureJson);
+    final eyesTextureJson = await db.queryTexture(
+      characterJson[DbHelper.characterEyesTextureCol],
+    );
+    final hairstyleTextureJson = await db.queryTexture(
+      characterJson[DbHelper.characterHairstyleTextureCol],
+    );
+    final outfitTextureJson = await db.queryTexture(
+      characterJson[DbHelper.characterOutfitTextureCol],
+    );
+
+    return CharacterData.fromJson(
+      characterJson,
+      bodyTexture: Addon.fromJson(bodyTextureJson!),
+      eyeTexture: Addon.fromJson(eyesTextureJson!),
+      hairstyleTexture: Addon.fromJson(hairstyleTextureJson!),
+      outfitTexture: Addon.fromJson(outfitTextureJson!),
+    );
   }
 }

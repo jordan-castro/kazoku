@@ -52,16 +52,18 @@ class Kazoku extends FlameGame with TapCallbacks {
 
   /// Load the player character.
   Future<CharacterComponent?> loadPlayer() async {
-    String playerId = await StorageManager.readData("playerId");
-    JSON? characterJson = await DbHelper.instance.queryCharacter(playerId);
+    // String playerId = await StorageManager.readData("playerId");
+    // JSON? characterJson = await DbHelper.instance.queryCharacter("1");
 
     // The player does not exist, should create one for first time.
-    if (characterJson == null) {
-      return null;
-    }
+    // if (characterJson == null) {
+    //   return null;
+    // }
 
     // TODO: Load any accessories
+    print("loading char");
 
-    return CharacterComponent(data: CharacterData.fromJson(characterJson));
+    return CharacterComponent(
+        data: (await CharacterData.loadCharacterFromId(1))!);
   }
 }

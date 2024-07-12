@@ -6,6 +6,7 @@ import 'package:kazoku/utils/json.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DbHelper {
   static const _databaseName = "Kazoku.db";
@@ -13,9 +14,7 @@ class DbHelper {
 
   // Table names
   static const charactersTable = "characters";
-  static const accessoriesTable = "accessories";
   static const characterTexturesTable = "characterTextures";
-  static const characterTexturesAttributesTable = "characterTexturesAttributes";
 
   // Column names
   static const characterIdCol = "id";
@@ -27,20 +26,11 @@ class DbHelper {
   static const characterHairstyleTextureCol = "hairstyleTexture";
   static const characterOutfitTextureCol = "outfitTexture";
 
-  static const accessoryIdCol = "id";
-  static const accessoryTypeCol = "type";
-  static const accessoryCharacterIdCol = "characterId";
-  static const a_CharacterTextureIdCol = "characterTextureId";
-
   static const ct_IdCol = "id";
   static const ct_NameCol = "name";
   static const ct_TypeCol = "type";
   static const ct_TexturePath = "path";
-
-  static const cta_IdCol = "id";
-  static const cta_KeyCol = "key";
-  static const cta_ValueCol = "value";
-  static const cta_CharacterTextureId = "characterTextureId";
+  static const ct_attributes = "attributes";
 
   // Singleton class this bitch
   DbHelper._privateConstructor();
@@ -54,11 +44,17 @@ class DbHelper {
     if (_database != null) return _database!;
     // lazy init
     _database = await _initDb();
-    return _database!;
+    return database;
   }
 
   // create or open the database
   Future<Database> _initDb() async {
+    // windows is special
+    if (Platform.isWindows) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+    // non windows
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
 
@@ -67,30 +63,23 @@ class DbHelper {
       version: _databaseVersion,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onDowngrade: _onUpgrade,
     );
   }
 
   // SQL code to create the database table
   Future _onCreate(Database db, int version) async {
+    print("On create called");
     await db.execute("""
       CREATE TABLE IF NOT EXISTS $charactersTable (
-        $characterIdCol TEXT PRIMARY KEY,
+        $characterIdCol INTEGER PRIMARY KEY,
         $characterNameCol TEXT,
         $characterGenderCol INTEGER,
         $characterAgeCol INTEGER,
-        $characterBodyTextureCol TEXT,
-        $characterEyesTextureCol TEXT,
-        $characterHairstyleTextureCol TEXT,
-        $characterOutfitTextureCol TEXT
-      )
-      """);
-
-    await db.execute("""
-      CREATE TABLE IF NOT EXISTS $accessoriesTable (
-        $accessoryIdCol INTEGER PRIMARY KEY,
-        $accessoryTypeCol TEXT,
-        $accessoryCharacterIdCol TEXT,
-        $a_CharacterTextureIdCol INTEGER
+        $characterBodyTextureCol INTEGER,
+        $characterEyesTextureCol INTEGER,
+        $characterHairstyleTextureCol INTEGER,
+        $characterOutfitTextureCol INTEGER
       )
     """);
 
@@ -99,59 +88,58 @@ class DbHelper {
         $ct_IdCol INTEGER PRIMARY KEY,
         $ct_NameCol TEXT,
         $ct_TypeCol TEXT,
-        $ct_TexturePath TEXT
+        $ct_TexturePath TEXT,
+        $ct_attributes TEXT
       )
     """);
 
-    await db.execute("""
-      CREATE TABLE IF NOT EXISTS $characterTexturesAttributesTable (
-        $cta_IdCol INTEGER PRIMARY KEY,
-        $cta_KeyCol TEXT,
-        $cta_ValueCol TEXT,
-        $cta_CharacterTextureId INTEGER
-      ) 
-    """);
+    // ADD A DEMO PLAYER
+    // TODO: remove this line
+    await db.insert(charactersTable, {
+      characterIdCol: 1,
+      characterNameCol: "Jordan",
+      characterAgeCol: 22,
+      characterGenderCol: 1,
+      characterBodyTextureCol: 1,
+      characterEyesTextureCol: 2,
+      characterHairstyleTextureCol: 3,
+      characterOutfitTextureCol: 4,
+    });
+    print("Added character");
 
-    await _addTexturesToDatabase();
+
+    await _addTexturesToDatabase(); 
+    print("on_create finish");
   }
 
   Future<void> _addTexturesToDatabase() async {
     Database db = await instance.database;
 
     await db.execute("""
-      INSERT INTO $characterTexturesTable ($ct_IdCol, $ct_NameCol, $ct_TypeCol, $ct_TexturePath)
+      INSERT INTO $characterTexturesTable ($ct_IdCol, $ct_NameCol, $ct_TypeCol, $ct_TexturePath, $ct_attributes)
       VALUES 
-      (1, "Brown Body", "body", "sprites/character/body/brown_body.png"),
-      (2, "Brown Eyes", "eyes", "sprites/character/eyes/brown_eyes.png"),
-      (3, "Brown Hair", "hairstyle", "sprites/character/hairstyle/brown_hair.png"),
-      (4, "Sherif Outfit", "outfit", "sprites/character/outfit/sherif_outfit.png")
-    """);
-
-    await db.execute("""
-      INSERT INTO $characterTexturesAttributesTable ($cta_IdCol, $cta_KeyCol, $cta_ValueCol, $cta_CharacterTextureId)
-      VALUES
-      (1, "color", "brown", 1),
-      (2, "color", "brown", 2),
-      (3, "color", "brown", 3),
-      (4, "color", "blue", 4),
-      (5, "outfitType", "uniform", 4),
+      (1, "Brown Body", "body", "sprites/character/body/Body_Green.png", ""),
+      (2, "Brown Eyes", "eyes", "sprites/character/eyes/Eyes_32x32_02.png", ""),
+      (3, "Brown Hair", "hairstyle", "sprites/character/hairstyle/Hairstyle_03_32x32_07.png", ""),
+      (4, "Sherif Outfit", "outfit", "sprites/character/outfit/Outfit_04_32x32_02.png", "")
     """);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print("On upgrade called");
     print("old = $oldVersion");
     print("new = $newVersion");
 
     // await db.execute("DROP TABLE $charactersTable");
-    await db.execute("DROP TABLE $characterTexturesTable");
-    await db.execute("DROP TABLE $characterTexturesAttributesTable");
-    await db.execute("DROP TABLE $accessoriesTable");
+    await db.execute("DROP TABLE IF EXISTS $characterTexturesTable");
+    await db.execute("DROP TABLE IF EXISTS $charactersTable");
 
     _onCreate(db, newVersion);
   }
 
   /// Query a Character
-  Future<JSON?> queryCharacter(String id) async {
+  Future<JSON?> queryCharacter(int id) async {
+    print(await instance.database);
     Database db = await instance.database;
     var query = await db.query(
       charactersTable,
@@ -163,6 +151,17 @@ class DbHelper {
     }
 
     return null;
+  }
+
+  /// Query a Texture
+  Future<JSON?> queryTexture(int textureId) async {
+    Database db = await instance.database;
+    var query = await db.query(
+      characterTexturesTable,
+      where: "$ct_IdCol = $textureId",
+    );
+
+    return query.isEmpty ? null : query.first;
   }
 
   /// Insert into a table
