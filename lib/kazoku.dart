@@ -4,10 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:kazoku/components/character/component.dart';
 import 'package:kazoku/components/character/data.dart';
-import 'package:kazoku/utils/database.dart';
 import 'package:kazoku/utils/get_size_without_context.dart';
-import 'package:kazoku/utils/json.dart';
-import 'package:kazoku/utils/storage_manager.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
   /// Is longTap
@@ -61,7 +58,6 @@ class Kazoku extends FlameGame with TapCallbacks {
     // }
 
     // TODO: Load any accessories
-    print("loading char");
 
     return CharacterComponent(
         data: (await CharacterData.loadCharacterFromId(1))!);

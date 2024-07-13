@@ -75,11 +75,12 @@ class CharacterData {
       return null;
     }
 
+    print(await db.queryTexture(200));
+
     // We have the necessary data
     final bodyTextureJson = await db.queryTexture(
       characterJson[DbHelper.characterBodyTextureCol],
     );
-    print(bodyTextureJson);
     final eyesTextureJson = await db.queryTexture(
       characterJson[DbHelper.characterEyesTextureCol],
     );

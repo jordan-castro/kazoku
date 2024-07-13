@@ -37,7 +37,7 @@ class Addon {
       name: json[DbHelper.ct_NameCol],
       addonType: addonTypeFromString(json[DbHelper.ct_TypeCol]),
       path: json[DbHelper.ct_TexturePath],
-      attributes: jsonDecode(attributes),
+      attributes: jsonDecode(attributes.replaceAll("'", '"')),
     );
   }
 
