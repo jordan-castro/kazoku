@@ -1,16 +1,18 @@
-import os
+import sys
 from glob import glob
 from PIL import Image
 
 
 class FillDatabase:
-    def __init__(self):
-        self.starting_number = 1
-        self.images = glob("assets/images/sprites/character/body/*")
-        self.type = "body"
+    def __init__(self, starting, path_to_images):
+        self.starting_number = starting
+        self.images = glob(path_to_images)
+        self.type = path_to_images.split("/")[-2].lower()
         self.is_for_kid = False
+        self.is_hair_or_outfit = "hair" in path_to_images or "outfit" in path_to_images
 
     def load_data(self):
+        print(self.type)
         if self.type == "body":
             self.fill_body()
         elif self.type == "outfit":
@@ -45,10 +47,23 @@ class FillDatabase:
         return file_name.split("_")[0].lower()
     
     def get_object_name(self, file_name):
-        object_name = file_name.split("_")[0:2]
-        object_name[1] = int(object_name[1])
-        return object_name[0] + " " + str(object_name[1])
+        if self.is_hair_or_outfit:
+            object_name = file_name.split("_")[0:2]
+            object_name[1] = int(object_name[1])
+            return object_name[0] + " " + str(object_name[1])
+        else:
+            return file_name.split("_")[0]
     
+    def fill_hairstyle(self):
+        point = (47, 32)
+        for path in self.images:
+            img = Image.open(path)
+            attributes = {
+                'color': self.rgb_to_hex(img.getpixel(point))
+            }
+            self.print_to_terminal(path, attributes)
+            self.starting_number += 1
+
     def fill_body(self):
         point = (48, 33)
         for path in self.images:
@@ -58,7 +73,19 @@ class FillDatabase:
             }
             self.print_to_terminal(path, attributes)
             self.starting_number += 1
-    
+
+    def fill_eyes(self):
+        top_point = (72, 40)
+        bottom_point = (72, 42)
+        for path in self.images:
+            img = Image.open(path)
+            attributes = {
+                'top_color': self.rgb_to_hex(img.getpixel(top_point)),
+                'bottom_color': self.rgb_to_hex(img.getpixel(bottom_point))
+            }
+            self.print_to_terminal(path, attributes)
+            self.starting_number += 1
+
     def fill_outfit(self):
         top_point = (47, 49) # check for kid
         bottom_point = (47, 56)
@@ -72,27 +99,7 @@ class FillDatabase:
             self.print_to_terminal(path, attributes)
             self.starting_number += 1
 
-# images = glob("assets/images/sprites/character/outfit/*")
-# top_point = (47, 49)
-# bottom_point = (47, 56)
-# for img_path in images:
-#     img = Image.open(img_path)
-#     file_name = ""
-#     if "\\" in img_path:
-#         file_name = img_path.split("\\")[-1]
-#     elif "/" in img_path:
-#         file_name = img_path.split("/")[-1]
-#     top_color = rgb_to_hex(img.getpixel(top_point))
-#     bottom_color = rgb_to_hex(img.getpixel(bottom_point))
-#     object_type = file_name.split("_")[0].lower()
-#     object_name = file_name.split("_")[0:2]
-#     object_name[1] = int(object_name[1])
-#     object_name = object_name[0] + " " + str(object_name[1])
 
-#     data = {
-#         "top_color": top_color,
-#         "bottom_color": bottom_color
-#     }
-
-#     print(f"({starting_number}, \"{object_name}\", \"{object_type}\", \"{img_path.replace("assets/images/", "").replace("\\", "/")}\", \"{data}\", 0),")
-#     starting_number += 1
+if __name__ == "__main__":
+    fill_database = FillDatabase(int(sys.argv[1]), sys.argv[2])
+    fill_database.load_data()
