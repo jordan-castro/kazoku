@@ -26,6 +26,7 @@ class CharacterGenerator {
     // Choose a hairstyle which should match the eye color
     if (rng.nextDouble() > 0.2) {
       // Is not bald
+      await _generateHairstyle(database, rng);
     }
 
     // Choose a random outfit
@@ -36,7 +37,8 @@ class CharacterGenerator {
 
     final characterData = CharacterData(
       id: (await _getLastId(database)) + 1,
-      name: await _randomName(database, gender, rng),
+      // name: await _randomName(database, gender, rng),
+      name: "No name",
       gender: gender,
       age: rng.nextInt(51) + 2,
       bodyTexture: body,
@@ -48,6 +50,17 @@ class CharacterGenerator {
     // save character to database.
     // await CharacterGenerator.saveCharacter(characterData);
     return characterData;
+  }
+
+  /// Generate a hairstyle.
+  Future<void> _generateHairstyle(Database db, math.Random rng) async {
+    final rows = await db.query(
+      DbHelper.characterTexturesTable,
+      where: "${DbHelper.ct_TypeCol} = 'hairstyle'",
+    );
+    hairstyle = Addon.fromJson(
+      rows[rng.nextInt(rows.length)],
+    );
   }
 
   /// CHOOSE a random name from our list of names.
@@ -70,10 +83,10 @@ class CharacterGenerator {
   Future<int> _getLastId(Database db) async {
     // Get last character
     final rows = await db.rawQuery(
-      "SELECT id FROM ${DbHelper.charactersTable} ORDER BY DESC LIMIT 1",
+      "SELECT id FROM ${DbHelper.charactersTable} ORDER BY id DESC LIMIT 1",
     );
     final row = rows[0];
-    return int.parse(row[DbHelper.characterIdCol] as String);
+    return row[DbHelper.characterIdCol] as int;
   }
 
   /// generaetg the body
@@ -82,7 +95,6 @@ class CharacterGenerator {
       DbHelper.characterTexturesTable,
       where: "${DbHelper.ct_TypeCol} = 'body'",
     );
-
     // choose a random option
     final bodyRow = allBodies[rng.nextInt(allBodies.length)];
     body = Addon.fromJson(bodyRow);
@@ -104,15 +116,22 @@ class CharacterGenerator {
   Future<void> _generateOutfit(Database database, math.Random rng) async {
     final outfitsAmount = await database.query(
       DbHelper.characterTexturesTable,
-      columns: [DbHelper.ct_IdCol],
+      columns: [DbHelper.ct_NameCol],
       where: "${DbHelper.ct_TypeCol} = 'outfit'",
     );
-    final outfitNumber = rng.nextInt(outfitsAmount.length);
+    final outfitNumber = outfitsAmount[rng.nextInt(outfitsAmount.length)]
+            [DbHelper.ct_NameCol]
+        .toString()
+        .split(" ")
+        .last;
+
+    print(outfitNumber);
 
     // Choose random outfit color
     final outfitsOfNumber = await database.query(
       DbHelper.characterTexturesTable,
-      where: "${DbHelper.ct_NameCol} LIKE '%$outfitNumber%'",
+      where:
+          "${DbHelper.ct_NameCol} LIKE '%$outfitNumber%' AND ${DbHelper.ct_TypeCol} = 'outfit'",
     );
 
     final outfitRow = outfitsOfNumber[rng.nextInt(outfitsOfNumber.length)];

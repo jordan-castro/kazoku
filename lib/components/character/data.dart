@@ -119,4 +119,18 @@ class CharacterData {
       outfitTexture: Addon.fromJson(outfitTextureJson!),
     );
   }
+
+  /// Convert this class into it's JSON equivalent.
+  JSON toJson() {
+    return {
+      DbHelper.characterIdCol: id,
+      DbHelper.characterNameCol: name,
+      DbHelper.characterGenderCol: gender.asInt,
+      DbHelper.characterAgeCol: age,
+      DbHelper.characterBodyTextureCol: bodyTexture?.id,
+      DbHelper.characterEyesTextureCol: eyeTexture?.id,
+      DbHelper.characterHairstyleTextureCol: bodyTexture?.id,
+      DbHelper.characterOutfitTextureCol: outfitTexture?.id,
+    };
+  }
 }

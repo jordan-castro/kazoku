@@ -44,7 +44,7 @@ class CharacterComponent extends PositionComponent {
   late OutfitComponent outfitComponent;
 
   /// The hairstyle component
-  late HairstyleComponent hairstyleComponent;
+  HairstyleComponent? hairstyleComponent;
 
   /// Current effect.
   Effect? currentEffect;
@@ -71,8 +71,11 @@ class CharacterComponent extends PositionComponent {
     await eyesComponent.addToParent(this);
     outfitComponent = OutfitComponent(addon: data.outfitTexture!);
     await outfitComponent.addToParent(this);
-    hairstyleComponent = HairstyleComponent(addon: data.hairstyleTexture!);
-    await hairstyleComponent.addToParent(this);
+
+    if (data.hairstyleTexture != null) {
+      hairstyleComponent = HairstyleComponent(addon: data.hairstyleTexture!);
+      await hairstyleComponent!.addToParent(this);
+    }
 
     // Animation
     _updateAnimation();
@@ -160,6 +163,6 @@ class CharacterComponent extends PositionComponent {
     bodyComponent.updateAnimation(state, direction);
     eyesComponent.updateAnimation(state, direction);
     outfitComponent.updateAnimation(state, direction);
-    hairstyleComponent.updateAnimation(state, direction);
+    hairstyleComponent?.updateAnimation(state, direction);
   }
 }

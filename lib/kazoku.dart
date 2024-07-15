@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:kazoku/components/character/component.dart';
 import 'package:kazoku/components/character/data.dart';
+import 'package:kazoku/model/character_generator.dart';
 import 'package:kazoku/utils/get_size_without_context.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
@@ -58,8 +59,12 @@ class Kazoku extends FlameGame with TapCallbacks {
     // }
 
     // TODO: Load any accessories
-
+    final characterGenerator = CharacterGenerator();
     return CharacterComponent(
-        data: (await CharacterData.loadCharacterFromId(1))!);
+      data: await characterGenerator.generateCharacter(),
+    );
+    // return CharacterComponent(
+    //   data: (await CharacterData.loadCharacterFromId(1))!,
+    // );
   }
 }
