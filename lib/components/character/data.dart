@@ -5,6 +5,26 @@ import 'package:kazoku/utils/json.dart';
 /// Gender Enum
 enum Gender { male, female }
 
+extension GenderConversion on Gender {
+  String get asString {
+    switch (this) {
+      case Gender.male:
+        return "male";
+      case Gender.female:
+        return "female";
+    }
+  }
+
+  int get asInt {
+    switch (this) {
+      case Gender.male:
+        return 1;
+      case Gender.female:
+        return 0;
+    }
+  }
+}
+
 class CharacterData {
   /// A unique string by which this character can be identified.
   final int id;

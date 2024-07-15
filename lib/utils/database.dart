@@ -15,6 +15,7 @@ class DbHelper {
   // Table names
   static const charactersTable = "characters";
   static const characterTexturesTable = "characterTextures";
+  static const nameOptionsTable = "name_options";
 
   // Column names
   static const characterIdCol = "id";
@@ -32,6 +33,10 @@ class DbHelper {
   static const ct_TexturePath = "path";
   static const ct_attributes = "attributes";
   static const ct_isForKid = "is_for_kid";
+
+  static const no_idCol = "id";
+  static const no_nameCol = "name";
+  static const no_genderCol = "gender";
 
   // Singleton class this bitch
   DbHelper._privateConstructor();
@@ -95,6 +100,14 @@ class DbHelper {
       )
     """);
 
+    await db.execute("""
+      CREATE TABLE IF NOT EXISTS $nameOptionsTable (
+        $no_idCol INTEGER PRIMARY KEY,
+        $no_nameCol TEXT,
+        $no_genderCol INTEGER
+      )
+    """);
+
     // ADD A DEMO PLAYER
     // TODO: remove this line
     await db.insert(charactersTable, {
@@ -110,6 +123,7 @@ class DbHelper {
     print("Added character");
 
     await _addTexturesToDatabase();
+    await _addNames();
     print("on_create finish");
   }
 
@@ -468,6 +482,11 @@ class DbHelper {
       (347, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_02.png", "{'top_color': '#e7f8ec', 'bottom_color': '#b2dbd4'}", 0),
       (348, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_03.png", "{'top_color': '#e7e5ec', 'bottom_color': '#b2bad4'}", 0)
     """);
+  }
+
+  Future<void> _addNames() async {
+    final db = await instance.database;
+    
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
