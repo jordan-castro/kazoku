@@ -25,6 +25,7 @@ extension GenderConversion on Gender {
   }
 }
 
+/// CharacterData, this class holds all the data for a CharacterComponent.
 class CharacterData {
   /// A unique string by which this character can be identified.
   final int id;

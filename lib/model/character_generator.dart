@@ -1,15 +1,37 @@
+import 'dart:convert';
+
 import 'package:kazoku/components/character/addon.dart';
 import 'package:kazoku/components/character/data.dart';
+import 'package:kazoku/gemini/prompt.dart';
 import 'package:kazoku/utils/database.dart';
 import 'dart:math' as math;
 
 import 'package:sqflite/sqflite.dart';
 
 class CharacterGenerator {
-  Addon? body;
-  Addon? eyes;
-  Addon? hairstyle;
-  Addon? outfit;
+  Addon? _body;
+  Addon? _eyes;
+  Addon? _hairstyle;
+  Addon? _outfit;
+
+  /// Generate a Character Data from GEMINI api.
+  Future<CharacterData> generateGeminiCharacter() async {
+    // get access to the database
+    final db = await DbHelper.instance.database;
+    // Get all textures
+    final textures = await db.query(DbHelper.characterTexturesTable);
+    final gptResponse = await promptCharacterGenerator(textures);
+    print(gptResponse);
+    if (gptResponse != null) {
+      print("GPT character");
+      // Parse it
+      final characterGpt = jsonDecode(gptResponse);
+      return CharacterData.fromJson(characterGpt);
+    }
+    print("Non GPT character");
+
+    return generateCharacter();
+  }
 
   /// Generate a character Data. (using a custom written model)
   ///
@@ -38,13 +60,13 @@ class CharacterGenerator {
     final characterData = CharacterData(
       id: (await _getLastId(database)) + 1,
       // name: await _randomName(database, gender, rng),
-      name: "No name",
+      name: "random",
       gender: gender,
       age: rng.nextInt(51) + 2,
-      bodyTexture: body,
-      eyeTexture: eyes,
-      hairstyleTexture: hairstyle,
-      outfitTexture: outfit,
+      bodyTexture: _body,
+      eyeTexture: _eyes,
+      hairstyleTexture: _hairstyle,
+      outfitTexture: _outfit,
     );
 
     // save character to database.
@@ -58,7 +80,7 @@ class CharacterGenerator {
       DbHelper.characterTexturesTable,
       where: "${DbHelper.ct_TypeCol} = 'hairstyle'",
     );
-    hairstyle = Addon.fromJson(
+    _hairstyle = Addon.fromJson(
       rows[rng.nextInt(rows.length)],
     );
   }
@@ -97,7 +119,7 @@ class CharacterGenerator {
     );
     // choose a random option
     final bodyRow = allBodies[rng.nextInt(allBodies.length)];
-    body = Addon.fromJson(bodyRow);
+    _body = Addon.fromJson(bodyRow);
   }
 
   /// Generate the eyes
@@ -109,7 +131,7 @@ class CharacterGenerator {
     );
 
     final eyesRow = allEyes[rng.nextInt(allEyes.length)];
-    eyes = Addon.fromJson(eyesRow);
+    _eyes = Addon.fromJson(eyesRow);
   }
 
   /// Generate the outfit
@@ -135,6 +157,6 @@ class CharacterGenerator {
     );
 
     final outfitRow = outfitsOfNumber[rng.nextInt(outfitsOfNumber.length)];
-    outfit = Addon.fromJson(outfitRow);
+    _outfit = Addon.fromJson(outfitRow);
   }
 }
