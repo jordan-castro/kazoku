@@ -5,7 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
 import 'package:kazoku/components/character/component.dart';
-import 'package:kazoku/utils/database.dart';
+import 'package:kazoku/database/database.dart';
 import 'package:kazoku/utils/json.dart';
 
 enum AddonType { body, eyes, hairstyle, outfit, other }

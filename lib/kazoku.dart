@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:kazoku/components/character/component.dart';
 import 'package:kazoku/components/character/data.dart';
 import 'package:kazoku/model/character_generator.dart';
+import 'package:kazoku/overlays/room_editor.dart';
 import 'package:kazoku/utils/get_size_without_context.dart';
 
 class Kazoku extends FlameGame with TapCallbacks {
@@ -19,6 +20,8 @@ class Kazoku extends FlameGame with TapCallbacks {
     Vector2 size = getScreenSizeWithoutContext();
 
     player.position = Vector2(size.x / 2, size.y / 2);
+
+    overlays.add(RoomEditorOverlay.overlay);
   }
 
   /// Load the player character.
@@ -34,7 +37,7 @@ class Kazoku extends FlameGame with TapCallbacks {
     // TODO: Load any accessories
     final characterGenerator = CharacterGenerator();
     return CharacterComponent(
-      data: await characterGenerator.generateGPTCharacter(),
+      data: await characterGenerator.generateGPTCharacter(characterType: null),
     );
     // return CharacterComponent(
     //   data: (await CharacterData.loadCharacterFromId(1))!,

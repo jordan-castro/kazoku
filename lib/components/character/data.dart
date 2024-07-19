@@ -1,5 +1,5 @@
 import 'package:kazoku/components/character/addon.dart';
-import 'package:kazoku/utils/database.dart';
+import 'package:kazoku/database/database.dart';
 import 'package:kazoku/utils/json.dart';
 
 /// Gender Enum

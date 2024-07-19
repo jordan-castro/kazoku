@@ -1,135 +1,11 @@
-// ignore_for_file: constant_identifier_names
-
-import 'dart:io';
-
-import 'package:kazoku/utils/json.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:kazoku/database/database.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-class DbHelper {
-  static const _databaseName = "Kazoku.db";
-  static const _databaseVersion = 2;
-
-  // Table names
-  static const charactersTable = "characters";
-  static const characterTexturesTable = "characterTextures";
-  static const nameOptionsTable = "name_options";
-
-  // Column names
-  static const characterIdCol = "id";
-  static const characterNameCol = "name";
-  static const characterGenderCol = "gender";
-  static const characterAgeCol = "age";
-  static const characterBodyTextureCol = "bodyTexture";
-  static const characterEyesTextureCol = "eyesTexture";
-  static const characterHairstyleTextureCol = "hairstyleTexture";
-  static const characterOutfitTextureCol = "outfitTexture";
-
-  static const ct_IdCol = "id";
-  static const ct_NameCol = "name";
-  static const ct_TypeCol = "type";
-  static const ct_TexturePath = "path";
-  static const ct_attributes = "attributes";
-  static const ct_isForKid = "is_for_kid";
-
-  static const no_idCol = "id";
-  static const no_nameCol = "name";
-  static const no_genderCol = "gender";
-
-  // Singleton class this jaunt
-  DbHelper._privateConstructor();
-
-  static final DbHelper instance = DbHelper._privateConstructor();
-
-  // only one system wide refrence in game
-  static Database? _database;
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    // lazy init
-    _database = await _initDb();
-    return _database!;
-  }
-
-  // create or open the database
-  Future<Database> _initDb() async {
-    // windows is special
-    if (Platform.isWindows) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
-    // non windows
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, _databaseName);
-
-    return await openDatabase(
-      path,
-      version: _databaseVersion,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-      onDowngrade: _onUpgrade,
-    );
-  }
-
-  // SQL code to create the database table
-  Future _onCreate(Database db, int version) async {
-    print("On create called");
-    await db.execute("""
-      CREATE TABLE IF NOT EXISTS $charactersTable (
-        $characterIdCol INTEGER PRIMARY KEY,
-        $characterNameCol TEXT,
-        $characterGenderCol INTEGER,
-        $characterAgeCol INTEGER,
-        $characterBodyTextureCol INTEGER,
-        $characterEyesTextureCol INTEGER,
-        $characterHairstyleTextureCol INTEGER,
-        $characterOutfitTextureCol INTEGER
-      )
-    """);
-
-    await db.execute("""
-      CREATE TABLE IF NOT EXISTS $characterTexturesTable (
-        $ct_IdCol INTEGER PRIMARY KEY,
-        $ct_NameCol TEXT,
-        $ct_TypeCol TEXT,
-        $ct_TexturePath TEXT,
-        $ct_attributes TEXT,
-        $ct_isForKid INTEGER
-      )
-    """);
-
-    await db.execute("""
-      CREATE TABLE IF NOT EXISTS $nameOptionsTable (
-        $no_idCol INTEGER PRIMARY KEY,
-        $no_nameCol TEXT,
-        $no_genderCol INTEGER
-      )
-    """);
-
-    // Add a player character. This should be removed
-    // TODO: REMOVE THIS LINE
-    await db.insert(charactersTable, {
-      characterIdCol: 1,
-      characterNameCol: "Jordan",
-      characterAgeCol: 22,
-      characterGenderCol: 1,
-      characterBodyTextureCol: 1,
-      characterEyesTextureCol: 2,
-      characterHairstyleTextureCol: 3,
-      characterOutfitTextureCol: 4,
-    });
-    print("Added character");
-
-    await _addTexturesToDatabase(db);
-    // await _addNames();
-    print("on_create finish");
-  }
-
-  Future<void> _addTexturesToDatabase(Database db) async {
-    await db.rawInsert("""
-      INSERT INTO $characterTexturesTable ($ct_IdCol, $ct_NameCol, $ct_TypeCol, $ct_TexturePath, $ct_attributes, $ct_isForKid)
+/// Insert a initial charcter texture into characterTexturesTable.
+Future<void> addInitialCharacterTextures(Database db) async {
+  await db.rawInsert("""
+      INSERT INTO ${DbHelper.characterTexturesTable} (${DbHelper.ct_IdCol}, ${DbHelper.ct_NameCol}, ${DbHelper.ct_TypeCol}, ${DbHelper.ct_TexturePath}, ${DbHelper.ct_attributes}, ${DbHelper.ct_isForKid})
       VALUES 
       (1, "Body 1", "body", "sprites/character/body/Body_32x32_01.png", "{'color': '#bf8b78'}", 0),
       (2, "Body 2", "body", "sprites/character/body/Body_32x32_02.png", "{'color': '#ffcbb0'}", 0),
@@ -347,206 +223,137 @@ class DbHelper {
       (214, "Hairstyle 29", "hairstyle", "sprites/character/hairstyle/Hairstyle_29_32x32_04.png", "{'color': '#50a7e8', 'gender': 0}", 0),
       (215, "Hairstyle 29", "hairstyle", "sprites/character/hairstyle/Hairstyle_29_32x32_05.png", "{'color': '#f8d239', 'gender': 0}", 0),
       (216, "Hairstyle 29", "hairstyle", "sprites/character/hairstyle/Hairstyle_29_32x32_06.png", "{'color': '#fc5c46', 'gender': 0}", 0),
-      (217, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_01.png", "{'top_color': '#9f74a8', 'bottom_color': '#5d6043'}", 0),
-      (218, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_02.png", "{'top_color': '#c1d2ee', 'bottom_color': '#c6bdd5'}", 0),
-      (219, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_03.png", "{'top_color': '#d0be9c', 'bottom_color': '#5a6775'}", 0),
-      (220, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_04.png", "{'top_color': '#e63f38', 'bottom_color': '#b9755c'}", 0),
-      (221, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_05.png", "{'top_color': '#517867', 'bottom_color': '#766868'}", 0),
-      (222, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_06.png", "{'top_color': '#e4806e', 'bottom_color': '#6da3a6'}", 0),
-      (223, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_07.png", "{'top_color': '#e480a3', 'bottom_color': '#5f9054'}", 0),
-      (224, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_08.png", "{'top_color': '#a29343', 'bottom_color': '#4d7dc8'}", 0),
-      (225, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_09.png", "{'top_color': '#d1f4f1', 'bottom_color': '#4d5b7a'}", 0),
-      (226, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_10.png", "{'top_color': '#a94965', 'bottom_color': '#955354'}", 0),
-      (227, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_01.png", "{'top_color': '#a2394b', 'bottom_color': '#3a3a50'}", 0),
-      (228, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_02.png", "{'top_color': '#90444c', 'bottom_color': '#3a3a50'}", 0),
-      (229, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_03.png", "{'top_color': '#a99244', 'bottom_color': '#3a3a50'}", 0),
-      (230, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_04.png", "{'top_color': '#4497a9', 'bottom_color': '#3a3a50'}", 0),
-      (231, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#8e6180'}", 0),
-      (232, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_02.png", "{'top_color': '#bd99c3', 'bottom_color': '#8e6180'}", 0),
-      (233, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_03.png", "{'top_color': '#1b99c3', 'bottom_color': '#b6814a'}", 0),
-      (234, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_04.png", "{'top_color': '#a1775f', 'bottom_color': '#439778'}", 0),
-      (235, "Outfit 4", "outfit", "sprites/character/outfit/Outfit_04_32x32_01.png", "{'top_color': '#729965', 'bottom_color': '#5a6775'}", 0),
-      (236, "Outfit 4", "outfit", "sprites/character/outfit/Outfit_04_32x32_02.png", "{'top_color': '#c78c59', 'bottom_color': '#5a6775'}", 0),
-      (237, "Outfit 4", "outfit", "sprites/character/outfit/Outfit_04_32x32_03.png", "{'top_color': '#6e8897', 'bottom_color': '#578468'}", 0),
-      (238, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#3a3a50'}", 0),
-      (239, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_02.png", "{'top_color': '#4d6e85', 'bottom_color': '#3a3a50'}", 0),
-      (240, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_03.png", "{'top_color': '#4d695a', 'bottom_color': '#3a3a50'}", 0),
-      (241, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_04.png", "{'top_color': '#dc9b5a', 'bottom_color': '#3a3a50'}", 0),
-      (242, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_05.png", "{'top_color': '#efdfe3', 'bottom_color': '#3a3a50'}", 0),
-      (243, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#3a3a50'}", 0),
-      (244, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_02.png", "{'top_color': '#6c6e6f', 'bottom_color': '#3a3a50'}", 0),
-      (245, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_03.png", "{'top_color': '#6c5a6f', 'bottom_color': '#3a3a50'}", 0),
-      (246, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_04.png", "{'top_color': '#4f7598', 'bottom_color': '#3a3a50'}", 0),
-      (247, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#647e99'}", 0),
-      (248, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_02.png", "{'top_color': '#bb814b', 'bottom_color': '#97a6b7'}", 0),
-      (249, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_03.png", "{'top_color': '#18838a', 'bottom_color': '#d68143'}", 0),
-      (250, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_04.png", "{'top_color': '#bb718a', 'bottom_color': '#979243'}", 0),
-      (251, "Outfit 8", "outfit", "sprites/character/outfit/Outfit_08_32x32_01.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8'}", 0),
-      (252, "Outfit 8", "outfit", "sprites/character/outfit/Outfit_08_32x32_02.png", "{'top_color': '#bab3b8', 'bottom_color': '#bab3b8'}", 0),
-      (253, "Outfit 8", "outfit", "sprites/character/outfit/Outfit_08_32x32_03.png", "{'top_color': '#827980', 'bottom_color': '#827980'}", 0),
-      (254, "Outfit 9", "outfit", "sprites/character/outfit/Outfit_09_32x32_01.png", "{'top_color': '#f8f8f8', 'bottom_color': '#e63f38'}", 0),
-      (255, "Outfit 9", "outfit", "sprites/character/outfit/Outfit_09_32x32_02.png", "{'top_color': '#f8f8f8', 'bottom_color': '#e6ad38'}", 0),
-      (256, "Outfit 9", "outfit", "sprites/character/outfit/Outfit_09_32x32_03.png", "{'top_color': '#f8f8f8', 'bottom_color': '#5aada7'}", 0),
-      (257, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_01.png", "{'top_color': '#9094aa', 'bottom_color': '#5f6ea2'}", 0),
-      (258, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_02.png", "{'top_color': '#6c95b7', 'bottom_color': '#bba05c'}", 0),
-      (259, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_03.png", "{'top_color': '#a63249', 'bottom_color': '#7e7795'}", 0),
-      (260, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_04.png", "{'top_color': '#897478', 'bottom_color': '#b2aebc'}", 0),
-      (261, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_05.png", "{'top_color': '#89b578', 'bottom_color': '#447674'}", 0),
-      (262, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_01.png", "{'top_color': '#d1b4d9', 'bottom_color': '#5b7366'}", 0),
-      (263, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_02.png", "{'top_color': '#d1b493', 'bottom_color': '#cf7769'}", 0),
-      (264, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_03.png", "{'top_color': '#d1c6d9', 'bottom_color': '#846e63'}", 0),
-      (265, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_04.png", "{'top_color': '#a09a3e', 'bottom_color': '#637e84'}", 0),
-      (266, "Outfit 12", "outfit", "sprites/character/outfit/Outfit_12_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#46465e'}", 0),
-      (267, "Outfit 12", "outfit", "sprites/character/outfit/Outfit_12_32x32_02.png", "{'top_color': '#5d5e70', 'bottom_color': '#46465e'}", 0),
-      (268, "Outfit 12", "outfit", "sprites/character/outfit/Outfit_12_32x32_03.png", "{'top_color': '#5d5e70', 'bottom_color': '#46465e'}", 0),
-      (269, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_01.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8'}", 0),
-      (270, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_02.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8'}", 0),
-      (271, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_03.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8'}", 0),
-      (272, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_04.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8'}", 0),
-      (273, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_01.png", "{'top_color': '#d0847c', 'bottom_color': '#566279'}", 0),
-      (274, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_02.png", "{'top_color': '#a98783', 'bottom_color': '#80899b'}", 0),
-      (275, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_03.png", "{'top_color': '#de8a7c', 'bottom_color': '#7c6279'}", 0),
-      (276, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_04.png", "{'top_color': '#adcae9', 'bottom_color': '#7c6862'}", 0),
-      (277, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_05.png", "{'top_color': '#57b179', 'bottom_color': '#628565'}", 0),
-      (278, "Outfit 15", "outfit", "sprites/character/outfit/Outfit_15_32x32_01.png", "{'top_color': '#ebf3ff', 'bottom_color': '#d9e0f6'}", 0),
-      (279, "Outfit 15", "outfit", "sprites/character/outfit/Outfit_15_32x32_02.png", "{'top_color': '#c1d2ee', 'bottom_color': '#a6b6e9'}", 0),
-      (280, "Outfit 15", "outfit", "sprites/character/outfit/Outfit_15_32x32_03.png", "{'top_color': '#5185d9', 'bottom_color': '#5774ce'}", 0),
-      (281, "Outfit 16", "outfit", "sprites/character/outfit/Outfit_16_32x32_01.png", "{'top_color': '#f5aa14', 'bottom_color': '#ed931e'}", 0),
-      (282, "Outfit 16", "outfit", "sprites/character/outfit/Outfit_16_32x32_02.png", "{'top_color': '#f58a4f', 'bottom_color': '#ed764f'}", 0),
-      (283, "Outfit 16", "outfit", "sprites/character/outfit/Outfit_16_32x32_03.png", "{'top_color': '#e15847', 'bottom_color': '#de414e'}", 0),
-      (284, "Outfit 17", "outfit", "sprites/character/outfit/Outfit_17_32x32_01.png", "{'top_color': '#4b9296', 'bottom_color': '#46465e'}", 0),
-      (285, "Outfit 17", "outfit", "sprites/character/outfit/Outfit_17_32x32_02.png", "{'top_color': '#8992d3', 'bottom_color': '#46465e'}", 0),
-      (286, "Outfit 17", "outfit", "sprites/character/outfit/Outfit_17_32x32_03.png", "{'top_color': '#89ccd3', 'bottom_color': '#46465e'}", 0),
-      (287, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_01.png", "{'top_color': '#d28a5d', 'bottom_color': '#c37759'}", 0),
-      (288, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_02.png", "{'top_color': '#b99e86', 'bottom_color': '#b18a74'}", 0),
-      (289, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_03.png", "{'top_color': '#d2585d', 'bottom_color': '#c35059'}", 0),
-      (290, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_04.png", "{'top_color': '#4e8bac', 'bottom_color': '#437696'}", 0),
-      (291, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_01.png", "{'top_color': '#ebe4f2', 'bottom_color': '#3761d6'}", 0),
-      (292, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_02.png", "{'top_color': '#ebe4f2', 'bottom_color': '#565972'}", 0),
-      (293, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_03.png", "{'top_color': '#ebe4f2', 'bottom_color': '#6c7193'}", 0),
-      (294, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_04.png", "{'top_color': '#ebe4f2', 'bottom_color': '#af7193'}", 0),
-      (295, "Outfit 20", "outfit", "sprites/character/outfit/Outfit_20_32x32_01.png", "{'top_color': '#4d5988', 'bottom_color': '#afb5df'}", 0),
-      (296, "Outfit 20", "outfit", "sprites/character/outfit/Outfit_20_32x32_02.png", "{'top_color': '#b7bccf', 'bottom_color': '#525eaf'}", 0),
-      (297, "Outfit 20", "outfit", "sprites/character/outfit/Outfit_20_32x32_03.png", "{'top_color': '#3eab7e', 'bottom_color': '#456786'}", 0),
-      (298, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_01.png", "{'top_color': '#76689e', 'bottom_color': '#afb5df'}", 0),
-      (299, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_02.png", "{'top_color': '#a99dca', 'bottom_color': '#5e6381'}", 0),
-      (300, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_03.png", "{'top_color': '#428f9e', 'bottom_color': '#afb5df'}", 0),
-      (301, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_04.png", "{'top_color': '#e17846', 'bottom_color': '#afb5df'}", 0),
-      (302, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_01.png", "{'top_color': '#88818e', 'bottom_color': '#3a3a50'}", 0),
-      (303, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_02.png", "{'top_color': '#6b6358', 'bottom_color': '#3a3a50'}", 0),
-      (304, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_03.png", "{'top_color': '#416358', 'bottom_color': '#3a3a50'}", 0),
-      (305, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_04.png", "{'top_color': '#4263a1', 'bottom_color': '#3a3a50'}", 0),
-      (306, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_01.png", "{'top_color': '#bda766', 'bottom_color': '#bda766'}", 0),
-      (307, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_02.png", "{'top_color': '#bda7a7', 'bottom_color': '#bda7a7'}", 0),
-      (308, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_03.png", "{'top_color': '#77bfbf', 'bottom_color': '#77bfbf'}", 0),
-      (309, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_04.png", "{'top_color': '#77bf71', 'bottom_color': '#77bf71'}", 0),
-      (310, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_01.png", "{'top_color': '#0092e3', 'bottom_color': '#0092e3'}", 0),
-      (311, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_02.png", "{'top_color': '#6dcfc6', 'bottom_color': '#6dcfc6'}", 0),
-      (312, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_03.png", "{'top_color': '#009292', 'bottom_color': '#009292'}", 0),
-      (313, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_04.png", "{'top_color': '#ad83c6', 'bottom_color': '#ad83c6'}", 0),
-      (314, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_01.png", "{'top_color': '#0092e3', 'bottom_color': '#0092e3'}", 0),
-      (315, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_02.png", "{'top_color': '#9ba3a7', 'bottom_color': '#9ba3a7'}", 0),
-      (316, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_03.png", "{'top_color': '#ad957c', 'bottom_color': '#ad957c'}", 0),
-      (317, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_04.png", "{'top_color': '#9d4c6d', 'bottom_color': '#9d4c6d'}", 0),
-      (318, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_05.png", "{'top_color': '#ffdfec', 'bottom_color': '#ffdfec'}", 0),
-      (319, "Outfit 26", "outfit", "sprites/character/outfit/Outfit_26_32x32_01.png", "{'top_color': '#71748c', 'bottom_color': '#71748c'}", 0),
-      (320, "Outfit 26", "outfit", "sprites/character/outfit/Outfit_26_32x32_02.png", "{'top_color': '#8c7771', 'bottom_color': '#8c7771'}", 0),
-      (321, "Outfit 26", "outfit", "sprites/character/outfit/Outfit_26_32x32_03.png", "{'top_color': '#587793', 'bottom_color': '#587793'}", 0),
-      (322, "Outfit 27", "outfit", "sprites/character/outfit/Outfit_27_32x32_01.png", "{'top_color': '#71748c', 'bottom_color': '#71748c'}", 0),
-      (323, "Outfit 27", "outfit", "sprites/character/outfit/Outfit_27_32x32_02.png", "{'top_color': '#71748c', 'bottom_color': '#71748c'}", 0),
-      (324, "Outfit 27", "outfit", "sprites/character/outfit/Outfit_27_32x32_03.png", "{'top_color': '#7e84bb', 'bottom_color': '#7e84bb'}", 0),
-      (325, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_01.png", "{'top_color': '#ead9f3', 'bottom_color': '#535590'}", 0),
-      (326, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_02.png", "{'top_color': '#ead9f3', 'bottom_color': '#535590'}", 0),
-      (327, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_03.png", "{'top_color': '#ead9f3', 'bottom_color': '#535590'}", 0),
-      (328, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_04.png", "{'top_color': '#ead9f3', 'bottom_color': '#6f493c'}", 0),
-      (329, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_01.png", "{'top_color': '#b0bfdc', 'bottom_color': '#5a5d78'}", 0),
-      (330, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_02.png", "{'top_color': '#6bbfdc', 'bottom_color': '#52578b'}", 0),
-      (331, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_03.png", "{'top_color': '#cde6ee', 'bottom_color': '#52578b'}", 0),
-      (332, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_04.png", "{'top_color': '#708ce3', 'bottom_color': '#43487e'}", 0),
-      (333, "Outfit 30", "outfit", "sprites/character/outfit/Outfit_30_32x32_01.png", "{'top_color': '#565972', 'bottom_color': '#51506f'}", 0),
-      (334, "Outfit 30", "outfit", "sprites/character/outfit/Outfit_30_32x32_02.png", "{'top_color': '#71729e', 'bottom_color': '#65648c'}", 0),
-      (335, "Outfit 30", "outfit", "sprites/character/outfit/Outfit_30_32x32_03.png", "{'top_color': '#8a837c', 'bottom_color': '#817876'}", 0),
-      (336, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_01.png", "{'top_color': '#000000', 'bottom_color': '#335789'}", 0),
-      (337, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_02.png", "{'top_color': '#000000', 'bottom_color': '#6c3e89'}", 0),
-      (338, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_03.png", "{'top_color': '#000000', 'bottom_color': '#453e85'}", 0),
-      (339, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_04.png", "{'top_color': '#000000', 'bottom_color': '#276858'}", 0),
-      (340, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_05.png", "{'top_color': '#000000', 'bottom_color': '#694334'}", 0),
-      (341, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_01.png", "{'top_color': '#335789', 'bottom_color': '#63a9e2'}", 0),
-      (342, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_02.png", "{'top_color': '#644074', 'bottom_color': '#cea9e2'}", 0),
-      (343, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_03.png", "{'top_color': '#5e5b60', 'bottom_color': '#dce1e9'}", 0),
-      (344, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_04.png", "{'top_color': '#464965', 'bottom_color': '#777b82'}", 0),
-      (345, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_05.png", "{'top_color': '#683f3d', 'bottom_color': '#f78c31'}", 0),
-      (346, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_01.png", "{'top_color': '#fdf8ec', 'bottom_color': '#eadbd4'}", 0),
-      (347, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_02.png", "{'top_color': '#e7f8ec', 'bottom_color': '#b2dbd4'}", 0),
-      (348, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_03.png", "{'top_color': '#e7e5ec', 'bottom_color': '#b2bad4'}", 0)
+      (217, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_01.png", "{'top_color': '#9f74a8', 'bottom_color': '#5d6043', 'type': 'regular'}", 0),
+      (218, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_02.png", "{'top_color': '#c1d2ee', 'bottom_color': '#c6bdd5', 'type': 'regular'}", 0),
+      (219, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_03.png", "{'top_color': '#d0be9c', 'bottom_color': '#5a6775', 'type': 'regular'}", 0),
+      (220, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_04.png", "{'top_color': '#e63f38', 'bottom_color': '#b9755c', 'type': 'regular'}", 0),
+      (221, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_05.png", "{'top_color': '#517867', 'bottom_color': '#766868', 'type': 'regular'}", 0),
+      (222, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_06.png", "{'top_color': '#e4806e', 'bottom_color': '#6da3a6', 'type': 'regular'}", 0),
+      (223, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_07.png", "{'top_color': '#e480a3', 'bottom_color': '#5f9054', 'type': 'regular'}", 0),
+      (224, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_08.png", "{'top_color': '#a29343', 'bottom_color': '#4d7dc8', 'type': 'regular'}", 0),
+      (225, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_09.png", "{'top_color': '#d1f4f1', 'bottom_color': '#4d5b7a', 'type': 'regular'}", 0),
+      (226, "Outfit 1", "outfit", "sprites/character/outfit/Outfit_01_32x32_10.png", "{'top_color': '#a94965', 'bottom_color': '#955354', 'type': 'regular'}", 0),
+      (227, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_01.png", "{'top_color': '#a2394b', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (228, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_02.png", "{'top_color': '#90444c', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (229, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_03.png", "{'top_color': '#a99244', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (230, "Outfit 2", "outfit", "sprites/character/outfit/Outfit_02_32x32_04.png", "{'top_color': '#4497a9', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (231, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#8e6180', 'type': 'regular'}", 0),
+      (232, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_02.png", "{'top_color': '#bd99c3', 'bottom_color': '#8e6180', 'type': 'regular'}", 0),
+      (233, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_03.png", "{'top_color': '#1b99c3', 'bottom_color': '#b6814a', 'type': 'regular'}", 0),
+      (234, "Outfit 3", "outfit", "sprites/character/outfit/Outfit_03_32x32_04.png", "{'top_color': '#a1775f', 'bottom_color': '#439778', 'type': 'regular'}", 0),
+      (235, "Outfit 4", "outfit", "sprites/character/outfit/Outfit_04_32x32_01.png", "{'top_color': '#729965', 'bottom_color': '#5a6775', 'type': 'regular'}", 0),
+      (236, "Outfit 4", "outfit", "sprites/character/outfit/Outfit_04_32x32_02.png", "{'top_color': '#c78c59', 'bottom_color': '#5a6775', 'type': 'regular'}", 0),
+      (237, "Outfit 4", "outfit", "sprites/character/outfit/Outfit_04_32x32_03.png", "{'top_color': '#6e8897', 'bottom_color': '#578468', 'type': 'regular'}", 0),
+      (238, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (239, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_02.png", "{'top_color': '#4d6e85', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (240, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_03.png", "{'top_color': '#4d695a', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (241, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_04.png", "{'top_color': '#dc9b5a', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (242, "Outfit 5", "outfit", "sprites/character/outfit/Outfit_05_32x32_05.png", "{'top_color': '#efdfe3', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (243, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (244, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_02.png", "{'top_color': '#6c6e6f', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (245, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_03.png", "{'top_color': '#6c5a6f', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (246, "Outfit 6", "outfit", "sprites/character/outfit/Outfit_06_32x32_04.png", "{'top_color': '#4f7598', 'bottom_color': '#3a3a50', 'type': 'regular'}", 0),
+      (247, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#647e99', 'type': 'regular'}", 0),
+      (248, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_02.png", "{'top_color': '#bb814b', 'bottom_color': '#97a6b7', 'type': 'regular'}", 0),
+      (249, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_03.png", "{'top_color': '#18838a', 'bottom_color': '#d68143', 'type': 'regular'}", 0),
+      (250, "Outfit 7", "outfit", "sprites/character/outfit/Outfit_07_32x32_04.png", "{'top_color': '#bb718a', 'bottom_color': '#979243', 'type': 'regular'}", 0),
+      (251, "Outfit 8", "outfit", "sprites/character/outfit/Outfit_08_32x32_01.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8', 'type': 'regular'}", 0),
+      (252, "Outfit 8", "outfit", "sprites/character/outfit/Outfit_08_32x32_02.png", "{'top_color': '#bab3b8', 'bottom_color': '#bab3b8', 'type': 'regular'}", 0),
+      (253, "Outfit 8", "outfit", "sprites/character/outfit/Outfit_08_32x32_03.png", "{'top_color': '#827980', 'bottom_color': '#827980', 'type': 'regular'}", 0),
+      (254, "Outfit 9", "outfit", "sprites/character/outfit/Outfit_09_32x32_01.png", "{'top_color': '#f8f8f8', 'bottom_color': '#e63f38', 'type': 'chef'}", 0),
+      (255, "Outfit 9", "outfit", "sprites/character/outfit/Outfit_09_32x32_02.png", "{'top_color': '#f8f8f8', 'bottom_color': '#e6ad38', 'type': 'chef'}", 0),
+      (256, "Outfit 9", "outfit", "sprites/character/outfit/Outfit_09_32x32_03.png", "{'top_color': '#f8f8f8', 'bottom_color': '#5aada7', 'type': 'chef'}", 0),
+      (257, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_01.png", "{'top_color': '#9094aa', 'bottom_color': '#5f6ea2', 'type': 'hoodie'}", 0),
+      (258, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_02.png", "{'top_color': '#6c95b7', 'bottom_color': '#bba05c', 'type': 'hoodie'}", 0),
+      (259, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_03.png", "{'top_color': '#a63249', 'bottom_color': '#7e7795', 'type': 'hoodie'}", 0),
+      (260, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_04.png", "{'top_color': '#897478', 'bottom_color': '#b2aebc', 'type': 'hoodie'}", 0),
+      (261, "Outfit 10", "outfit", "sprites/character/outfit/Outfit_10_32x32_05.png", "{'top_color': '#89b578', 'bottom_color': '#447674', 'type': 'hoodie'}", 0),
+      (262, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_01.png", "{'top_color': '#d1b4d9', 'bottom_color': '#5b7366', 'type': 'jacket'}", 0),
+      (263, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_02.png", "{'top_color': '#d1b493', 'bottom_color': '#cf7769', 'type': 'jacket'}", 0),
+      (264, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_03.png", "{'top_color': '#d1c6d9', 'bottom_color': '#846e63', 'type': 'jacket'}", 0),
+      (265, "Outfit 11", "outfit", "sprites/character/outfit/Outfit_11_32x32_04.png", "{'top_color': '#a09a3e', 'bottom_color': '#637e84', 'type': 'jacket'}", 0),
+      (266, "Outfit 12", "outfit", "sprites/character/outfit/Outfit_12_32x32_01.png", "{'top_color': '#6c6e85', 'bottom_color': '#46465e', 'type': 'doctor'}", 0),
+      (267, "Outfit 12", "outfit", "sprites/character/outfit/Outfit_12_32x32_02.png", "{'top_color': '#5d5e70', 'bottom_color': '#46465e', 'type': 'doctor'}", 0),
+      (268, "Outfit 12", "outfit", "sprites/character/outfit/Outfit_12_32x32_03.png", "{'top_color': '#5d5e70', 'bottom_color': '#46465e', 'type': 'doctor'}", 0),
+      (269, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_01.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8', 'type': 'apron', 'gender': 1}", 0),
+      (270, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_02.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8', 'type': 'apron', 'gender': 0}", 0),
+      (271, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_03.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8', 'type': 'apron', 'gender': 1}", 0),
+      (272, "Outfit 13", "outfit", "sprites/character/outfit/Outfit_13_32x32_04.png", "{'top_color': '#f8f8f8', 'bottom_color': '#f8f8f8', 'type': 'apron', 'gender': 0}", 0),
+      (273, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_01.png", "{'top_color': '#d0847c', 'bottom_color': '#566279', 'type': 'regular_2'}", 0),
+      (274, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_02.png", "{'top_color': '#a98783', 'bottom_color': '#80899b', 'type': 'regular_2'}", 0),
+      (275, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_03.png", "{'top_color': '#de8a7c', 'bottom_color': '#7c6279', 'type': 'regular_2'}", 0),
+      (276, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_04.png", "{'top_color': '#adcae9', 'bottom_color': '#7c6862', 'type': 'regular_2'}", 0),
+      (277, "Outfit 14", "outfit", "sprites/character/outfit/Outfit_14_32x32_05.png", "{'top_color': '#57b179', 'bottom_color': '#628565', 'type': 'regular_2'}", 0),
+      (278, "Outfit 15", "outfit", "sprites/character/outfit/Outfit_15_32x32_01.png", "{'top_color': '#ebf3ff', 'bottom_color': '#d9e0f6', 'type': 'karate_uniform'}", 0),
+      (279, "Outfit 15", "outfit", "sprites/character/outfit/Outfit_15_32x32_02.png", "{'top_color': '#c1d2ee', 'bottom_color': '#a6b6e9', 'type': 'karate_uniform'}", 0),
+      (280, "Outfit 15", "outfit", "sprites/character/outfit/Outfit_15_32x32_03.png", "{'top_color': '#5185d9', 'bottom_color': '#5774ce', 'type': 'karate_uniform'}", 0),
+      (281, "Outfit 16", "outfit", "sprites/character/outfit/Outfit_16_32x32_01.png", "{'top_color': '#f5aa14', 'bottom_color': '#ed931e', 'type': 'onesie'}", 0),
+      (282, "Outfit 16", "outfit", "sprites/character/outfit/Outfit_16_32x32_02.png", "{'top_color': '#f58a4f', 'bottom_color': '#ed764f', 'type': 'onesie'}", 0),
+      (283, "Outfit 16", "outfit", "sprites/character/outfit/Outfit_16_32x32_03.png", "{'top_color': '#e15847', 'bottom_color': '#de414e', 'type': 'onesie'}", 0),
+      (284, "Outfit 17", "outfit", "sprites/character/outfit/Outfit_17_32x32_01.png", "{'top_color': '#4b9296', 'bottom_color': '#46465e', 'type': 'nurse_uniform'}", 0),
+      (285, "Outfit 17", "outfit", "sprites/character/outfit/Outfit_17_32x32_02.png", "{'top_color': '#8992d3', 'bottom_color': '#46465e', 'type': 'nurse_uniform'}", 0),
+      (286, "Outfit 17", "outfit", "sprites/character/outfit/Outfit_17_32x32_03.png", "{'top_color': '#89ccd3', 'bottom_color': '#46465e', 'type': 'nurse_uniform'}", 0),
+      (287, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_01.png", "{'top_color': '#d28a5d', 'bottom_color': '#c37759', 'gender': 1, 'type': 'safari_jacket'}", 0),
+      (288, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_02.png", "{'top_color': '#b99e86', 'bottom_color': '#b18a74', 'gender': 1, 'type': 'safari_jacket'}", 0),
+      (289, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_03.png", "{'top_color': '#d2585d', 'bottom_color': '#c35059', 'gender': 1, 'type': 'safari_jacket'}", 0),
+      (290, "Outfit 18", "outfit", "sprites/character/outfit/Outfit_18_32x32_04.png", "{'top_color': '#4e8bac', 'bottom_color': '#437696', 'gender': 1, 'type': 'safari_jacket'}", 0),
+      (291, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_01.png", "{'top_color': '#ebe4f2', 'bottom_color': '#3761d6', 'gender': 1, 'type': 'sport_uniform'}", 0),
+      (292, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_02.png", "{'top_color': '#ebe4f2', 'bottom_color': '#565972', 'gender': 1, 'type': 'sport_uniform'}", 0),
+      (293, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_03.png", "{'top_color': '#ebe4f2', 'bottom_color': '#6c7193', 'gender': 1, 'type': 'sport_uniform'}", 0),
+      (294, "Outfit 19", "outfit", "sprites/character/outfit/Outfit_19_32x32_04.png", "{'top_color': '#ebe4f2', 'bottom_color': '#af7193', 'gender': 1, 'type': 'sport_uniform'}", 0),
+      (295, "Outfit 20", "outfit", "sprites/character/outfit/Outfit_20_32x32_01.png", "{'top_color': '#4d5988', 'bottom_color': '#afb5df', 'type': 'hoodie'}", 0),
+      (296, "Outfit 20", "outfit", "sprites/character/outfit/Outfit_20_32x32_02.png", "{'top_color': '#b7bccf', 'bottom_color': '#525eaf', 'type': 'hoodie'}", 0),
+      (297, "Outfit 20", "outfit", "sprites/character/outfit/Outfit_20_32x32_03.png", "{'top_color': '#3eab7e', 'bottom_color': '#456786', 'type': 'hoodie'}", 0),
+      (298, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_01.png", "{'top_color': '#76689e', 'bottom_color': '#afb5df', 'type': 'regular_3'}", 0),
+      (299, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_02.png", "{'top_color': '#a99dca', 'bottom_color': '#5e6381', 'type': 'regular_3'}", 0),
+      (300, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_03.png", "{'top_color': '#428f9e', 'bottom_color': '#afb5df', 'type': 'regular_3'}", 0),
+      (301, "Outfit 21", "outfit", "sprites/character/outfit/Outfit_21_32x32_04.png", "{'top_color': '#e17846', 'bottom_color': '#afb5df', 'type': 'regular_3'}", 0),
+      (302, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_01.png", "{'top_color': '#88818e', 'bottom_color': '#3a3a50', 'type': 'suit'}", 0),
+      (303, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_02.png", "{'top_color': '#6b6358', 'bottom_color': '#3a3a50', 'type': 'suit'}", 0),
+      (304, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_03.png", "{'top_color': '#416358', 'bottom_color': '#3a3a50', 'type': 'suit'}", 0),
+      (305, "Outfit 22", "outfit", "sprites/character/outfit/Outfit_22_32x32_04.png", "{'top_color': '#4263a1', 'bottom_color': '#3a3a50', 'type': 'suit'}", 0),
+      (306, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_01.png", "{'top_color': '#bda766', 'bottom_color': '#bda766', 'type': 'robe'}", 0),
+      (307, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_02.png", "{'top_color': '#bda7a7', 'bottom_color': '#bda7a7', 'type': 'robe'}", 0),
+      (308, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_03.png", "{'top_color': '#77bfbf', 'bottom_color': '#77bfbf', 'type': 'robe'}", 0),
+      (309, "Outfit 23", "outfit", "sprites/character/outfit/Outfit_23_32x32_04.png", "{'top_color': '#77bf71', 'bottom_color': '#77bf71', 'type': 'robe'}", 0),
+      (310, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_01.png", "{'top_color': '#0092e3', 'bottom_color': '#0092e3', 'type': 'dirty_robe'}", 0),
+      (311, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_02.png", "{'top_color': '#6dcfc6', 'bottom_color': '#6dcfc6', 'type': 'dirty_robe'}", 0),
+      (312, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_03.png", "{'top_color': '#009292', 'bottom_color': '#009292', 'type': 'dirty_robe'}", 0),
+      (313, "Outfit 24", "outfit", "sprites/character/outfit/Outfit_24_32x32_04.png", "{'top_color': '#ad83c6', 'bottom_color': '#ad83c6', 'type': 'dirty_robe'}", 0),
+      (314, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_01.png", "{'top_color': '#0092e3', 'bottom_color': '#0092e3', 'type': 'robe'}", 0),
+      (315, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_02.png", "{'top_color': '#9ba3a7', 'bottom_color': '#9ba3a7', 'type': 'robe'}", 0),
+      (316, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_03.png", "{'top_color': '#ad957c', 'bottom_color': '#ad957c', 'type': 'robe'}", 0),
+      (317, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_04.png", "{'top_color': '#9d4c6d', 'bottom_color': '#9d4c6d', 'type': 'robe'}", 0),
+      (318, "Outfit 25", "outfit", "sprites/character/outfit/Outfit_25_32x32_05.png", "{'top_color': '#ffdfec', 'bottom_color': '#ffdfec', 'type': 'robe'}", 0),
+      (319, "Outfit 26", "outfit", "sprites/character/outfit/Outfit_26_32x32_01.png", "{'top_color': '#71748c', 'bottom_color': '#71748c', 'type': 'detective_uniform', 'gender': 1}", 0),
+      (320, "Outfit 26", "outfit", "sprites/character/outfit/Outfit_26_32x32_02.png", "{'top_color': '#8c7771', 'bottom_color': '#8c7771', 'type': 'detective_uniform', 'gender': 1}", 0),
+      (321, "Outfit 26", "outfit", "sprites/character/outfit/Outfit_26_32x32_03.png", "{'top_color': '#587793', 'bottom_color': '#587793', 'type': 'detective_uniform', 'gender': 1}", 0),
+      (322, "Outfit 27", "outfit", "sprites/character/outfit/Outfit_27_32x32_01.png", "{'top_color': '#71748c', 'bottom_color': '#71748c', 'type': 'poncho_with_buttons'}", 0),
+      (323, "Outfit 27", "outfit", "sprites/character/outfit/Outfit_27_32x32_02.png", "{'top_color': '#71748c', 'bottom_color': '#71748c', 'type': 'poncho_with_buttons'}", 0),
+      (324, "Outfit 27", "outfit", "sprites/character/outfit/Outfit_27_32x32_03.png", "{'top_color': '#7e84bb', 'bottom_color': '#7e84bb', 'type': 'poncho_with_buttons'}", 0),
+      (325, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_01.png", "{'top_color': '#ead9f3', 'bottom_color': '#535590', 'type': 'schoolgirl_uniform', 'gender': 0}", 0),
+      (326, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_02.png", "{'top_color': '#ead9f3', 'bottom_color': '#535590', 'type': 'schoolgirl_uniform', 'gender': 0}", 0),
+      (327, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_03.png", "{'top_color': '#ead9f3', 'bottom_color': '#535590', 'type': 'schoolgirl_uniform', 'gender': 0}", 0),
+      (328, "Outfit 28", "outfit", "sprites/character/outfit/Outfit_28_32x32_04.png", "{'top_color': '#ead9f3', 'bottom_color': '#6f493c', 'type': 'schoolgirl_uniform', 'gender': 0}", 0),
+      (329, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_01.png", "{'top_color': '#b0bfdc', 'bottom_color': '#5a5d78', 'type': 'sherif_uniform', 'gender': 1}", 0),
+      (330, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_02.png", "{'top_color': '#6bbfdc', 'bottom_color': '#52578b', 'type': 'sherif_uniform', 'gender': 1}", 0),
+      (331, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_03.png", "{'top_color': '#cde6ee', 'bottom_color': '#52578b', 'type': 'sherif_uniform', 'gender': 1}", 0),
+      (332, "Outfit 29", "outfit", "sprites/character/outfit/Outfit_29_32x32_04.png", "{'top_color': '#708ce3', 'bottom_color': '#43487e', 'type': 'sherif_uniform', 'gender': 1}", 0),
+      (333, "Outfit 30", "outfit", "sprites/character/outfit/Outfit_30_32x32_01.png", "{'top_color': '#565972', 'bottom_color': '#51506f', 'type': 'ninja_uniform'}", 0),
+      (334, "Outfit 30", "outfit", "sprites/character/outfit/Outfit_30_32x32_02.png", "{'top_color': '#71729e', 'bottom_color': '#65648c', 'type': 'ninja_uniform'}", 0),
+      (335, "Outfit 30", "outfit", "sprites/character/outfit/Outfit_30_32x32_03.png", "{'top_color': '#8a837c', 'bottom_color': '#817876', 'type': 'ninja_uniform'}", 0),
+      (336, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_01.png", "{'top_color': '#000000', 'bottom_color': '#335789', 'type': 'bathing_suit', 'gender': 1}", 0),
+      (337, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_02.png", "{'top_color': '#000000', 'bottom_color': '#6c3e89', 'type': 'bathing_suit', 'gender': 1}", 0),
+      (338, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_03.png", "{'top_color': '#000000', 'bottom_color': '#453e85', 'type': 'bathing_suit', 'gender': 1}", 0),
+      (339, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_04.png", "{'top_color': '#000000', 'bottom_color': '#276858', 'type': 'bathing_suit', 'gender': 1}", 0),
+      (340, "Outfit 31", "outfit", "sprites/character/outfit/Outfit_31_32x32_05.png", "{'top_color': '#000000', 'bottom_color': '#694334', 'type': 'bathing_suit', 'gender': 1}", 0),
+      (341, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_01.png", "{'top_color': '#335789', 'bottom_color': '#63a9e2', 'type': 'bikini', 'gender': 0}", 0),
+      (342, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_02.png", "{'top_color': '#644074', 'bottom_color': '#cea9e2', 'type': 'bikini', 'gender': 0}", 0),
+      (343, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_03.png", "{'top_color': '#5e5b60', 'bottom_color': '#dce1e9', 'type': 'bikini', 'gender': 0}", 0),
+      (344, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_04.png", "{'top_color': '#464965', 'bottom_color': '#777b82', 'type': 'bikini', 'gender': 0}", 0),
+      (345, "Outfit 32", "outfit", "sprites/character/outfit/Outfit_32_32x32_05.png", "{'top_color': '#683f3d', 'bottom_color': '#f78c31', 'type': 'bikini', 'gender': 0}", 0),
+      (346, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_01.png", "{'top_color': '#fdf8ec', 'bottom_color': '#eadbd4', 'type': 'dress', 'gender': 0}", 0),
+      (347, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_02.png", "{'top_color': '#e7f8ec', 'bottom_color': '#b2dbd4', 'type': 'dress', 'gender': 0}", 0),
+      (348, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_03.png", "{'top_color': '#e7e5ec', 'bottom_color': '#b2bad4', 'type': 'dress', 'gender': 0}", 0)
     """);
-  }
-
-  Future<void> _addNames() async {
-    final db = await instance.database;
-    // TODO: add names.
-  }
-
-  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    print("On upgrade called");
-    print("old = $oldVersion");
-    print("new = $newVersion");
-
-    // await db.execute("DROP TABLE $charactersTable");
-    await db.execute("DROP TABLE IF EXISTS $characterTexturesTable");
-    await db.execute("DROP TABLE IF EXISTS $charactersTable");
-
-    _onCreate(db, newVersion);
-  }
-
-  /// Query a Character
-  Future<JSON?> queryCharacter(int id) async {
-    print(await instance.database);
-    Database db = await instance.database;
-    var query = await db.query(
-      charactersTable,
-      where: "$characterIdCol = $id",
-    );
-
-    if (query.isNotEmpty) {
-      return query.first;
-    }
-
-    return null;
-  }
-
-  /// Query a Texture
-  Future<JSON?> queryTexture(int textureId) async {
-    Database db = await instance.database;
-    var query = await db.query(
-      characterTexturesTable,
-      where: "$ct_IdCol = $textureId",
-    );
-
-    return query.isEmpty ? null : query.first;
-  }
-
-  /// Insert into a table
-  Future<int> insertIntoTable(String tableName, JSON data) async {
-    Database db = await instance.database;
-    return await db.insert(tableName, data);
-  }
-
-  /// Delete from a table
-  Future<int> deleteFromTable(
-    String tableName,
-    String colName,
-    dynamic value,
-  ) async {
-    Database db = await instance.database;
-    return await db.delete(tableName, where: "$colName = $value");
-  }
-
-  /// Update a value in a table
-  ///
-  /// **IMPORTANT** the `data` must have an `id` key.
-  Future<int> updateTableValue(String tableName, JSON data) async {
-    Database db = await instance.database;
-    return db.update(tableName, data, where: "id = ${data['id']}");
-  }
 }

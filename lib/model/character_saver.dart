@@ -1,6 +1,5 @@
 import 'package:kazoku/components/character/data.dart';
-import 'package:kazoku/utils/database.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:kazoku/database/database.dart';
 
 /// Save a character to the Kazoku.db
 Future<void> saveCharacter(CharacterData data) async {

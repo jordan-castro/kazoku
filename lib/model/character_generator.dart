@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:kazoku/components/character/addon.dart';
 import 'package:kazoku/components/character/data.dart';
 import 'package:kazoku/gemini/prompt.dart';
-import 'package:kazoku/utils/database.dart';
+import 'package:kazoku/database/database.dart';
 import 'dart:math' as math;
 
 import 'package:sqflite/sqflite.dart';
@@ -15,30 +15,20 @@ class CharacterGenerator {
   Addon? _outfit;
 
   /// Generate a Character Data from GEMINI api.
-  Future<CharacterData> generateGPTCharacter() async {
+  Future<CharacterData> generateGPTCharacter({String? characterType}) async {
     // get access to the database
     final db = await DbHelper.instance.database;
     // Get all textures
-    final textures = await db.query(DbHelper.characterTexturesTable);
-    final gptResponse = await promptCharacter(textures);
-    print(gptResponse);
-    if (gptResponse != null) {
-      // Parse it
-      final characterGpt = jsonDecode(gptResponse);
-      characterGpt[DbHelper.characterIdCol] = await _getLastId(db);
-      return CharacterData.loadWithTextureIDJson(characterGpt);
-    }
-
-    return generateCharacter();
-  }
-
-  /// Generate a NPC type character.
-  Future<CharacterData> generateGPTNPC(String characterType) async {
-    // get access to the database
-    final db = await DbHelper.instance.database;
-    // Get all textures
-    final textures = await db.query(DbHelper.characterTexturesTable);
-    final gptResponse = await promptCustomerCharacter(textures, characterType);
+    final textures = await db.query(
+      DbHelper.characterTexturesTable,
+      columns: [
+        DbHelper.ct_IdCol,
+        DbHelper.ct_TypeCol,
+        DbHelper.ct_attributes,
+        DbHelper.ct_isForKid,
+      ],
+    );
+    final gptResponse = await promptCharacter(textures, characterType);
     print(gptResponse);
     if (gptResponse != null) {
       // Parse it
@@ -100,22 +90,6 @@ class CharacterGenerator {
     _hairstyle = Addon.fromJson(
       rows[rng.nextInt(rows.length)],
     );
-  }
-
-  /// CHOOSE a random name from our list of names.
-  Future<String> _randomName(
-    Database db,
-    Gender gender,
-    math.Random rng,
-  ) async {
-    final rows = await db.query(
-      DbHelper.nameOptionsTable,
-      where:
-          "${DbHelper.no_genderCol} = ${gender.asInt} OR ${DbHelper.no_genderCol} = 2",
-    );
-    final row = rows[rng.nextInt(rows.length)];
-
-    return row[DbHelper.no_nameCol] as String;
   }
 
   /// Get the most recent id of the characters table.
