@@ -15,20 +15,37 @@ class CharacterGenerator {
   Addon? _outfit;
 
   /// Generate a Character Data from GEMINI api.
-  Future<CharacterData> generateGeminiCharacter() async {
+  Future<CharacterData> generateGPTCharacter() async {
     // get access to the database
     final db = await DbHelper.instance.database;
     // Get all textures
     final textures = await db.query(DbHelper.characterTexturesTable);
-    final gptResponse = await promptCharacterGenerator(textures);
+    final gptResponse = await promptCharacter(textures);
     print(gptResponse);
     if (gptResponse != null) {
-      print("GPT character");
       // Parse it
       final characterGpt = jsonDecode(gptResponse);
-      return CharacterData.fromJson(characterGpt);
+      characterGpt[DbHelper.characterIdCol] = await _getLastId(db);
+      return CharacterData.loadWithTextureIDJson(characterGpt);
     }
-    print("Non GPT character");
+
+    return generateCharacter();
+  }
+
+  /// Generate a NPC type character.
+  Future<CharacterData> generateGPTNPC(String characterType) async {
+    // get access to the database
+    final db = await DbHelper.instance.database;
+    // Get all textures
+    final textures = await db.query(DbHelper.characterTexturesTable);
+    final gptResponse = await promptCustomerCharacter(textures, characterType);
+    print(gptResponse);
+    if (gptResponse != null) {
+      // Parse it
+      final characterGpt = jsonDecode(gptResponse);
+      characterGpt[DbHelper.characterIdCol] = await _getLastId(db);
+      return CharacterData.loadWithTextureIDJson(characterGpt);
+    }
 
     return generateCharacter();
   }

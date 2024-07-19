@@ -59,33 +59,75 @@ class CharacterData {
     required this.name,
     required this.gender,
     required this.age,
-    required this.bodyTexture,
-    required this.eyeTexture,
-    required this.hairstyleTexture,
-    required this.outfitTexture,
+    this.bodyTexture,
+    this.eyeTexture,
+    this.hairstyleTexture,
+    this.outfitTexture,
     this.accessories,
   });
 
-  factory CharacterData.fromJson(JSON json,
-      {Addon? bodyTexture,
-      Addon? eyeTexture,
-      Addon? hairstyleTexture,
-      Addon? outfitTexture}) {
+  /// Basic constructor
+  factory CharacterData.fromJson(JSON json) {
     return CharacterData(
       id: json['id'],
       name: json['name'],
       gender: json['gender'] == 0 ? Gender.female : Gender.male,
       age: toIntOrNull(json['age'])!,
-      bodyTexture: bodyTexture,
-      eyeTexture: eyeTexture,
-      hairstyleTexture: hairstyleTexture,
-      outfitTexture: outfitTexture,
     );
   }
 
   /// Is this character a kid? (think toddler)
   bool isKid() {
     return age <= 4;
+  }
+
+  Future<void> loadBodyFromId(int textureId) async {
+    bodyTexture = await _loadTextureFromId(textureId);
+  }
+
+  Future<void> loadHairstyleFromId(int textureId) async {
+    hairstyleTexture = await _loadTextureFromId(textureId);
+  }
+
+  Future<void> loadEyesFromId(int textureId) async {
+    eyeTexture = await _loadTextureFromId(textureId);
+  }
+
+  Future<void> loadOutfitFromId(int textureId) async {
+    outfitTexture = await _loadTextureFromId(textureId);
+  }
+
+  Future<Addon?> _loadTextureFromId(int textureId) async {
+    final db = DbHelper.instance;
+    final result = await db.queryTexture(textureId);
+    if (result == null) {
+      return null;
+    }
+    return Addon.fromJson(result);
+  }
+
+  /// When we have a JSON that contains the id of textures this should be called.
+  /// This is usuallly the case when a NPC who is not saved to the DB is generated.
+  static Future<CharacterData> loadWithTextureIDJson(JSON json) async {
+    final data = CharacterData.fromJson(json);
+    await data._loadTexturesFromJSON(json);
+    return data;
+  }
+
+
+  Future<void> _loadTexturesFromJSON(JSON json) async {
+    if (json.containsKey(DbHelper.characterBodyTextureCol)) {
+      await loadBodyFromId(json[DbHelper.characterBodyTextureCol]);
+    }
+    if (json.containsKey(DbHelper.characterEyesTextureCol)) {
+      await loadEyesFromId(json[DbHelper.characterEyesTextureCol]);
+    }
+    if (json.containsKey(DbHelper.characterHairstyleTextureCol)) {
+      await loadHairstyleFromId(json[DbHelper.characterHairstyleTextureCol]);
+    }
+    if (json.containsKey(DbHelper.characterOutfitTextureCol)) {
+      await loadOutfitFromId(json[DbHelper.characterOutfitTextureCol]);
+    }
   }
 
   static Future<CharacterData?> loadCharacterFromId(int id) async {
@@ -96,29 +138,9 @@ class CharacterData {
       return null;
     }
 
-    print(await db.queryTexture(200));
-
-    // We have the necessary data
-    final bodyTextureJson = await db.queryTexture(
-      characterJson[DbHelper.characterBodyTextureCol],
-    );
-    final eyesTextureJson = await db.queryTexture(
-      characterJson[DbHelper.characterEyesTextureCol],
-    );
-    final hairstyleTextureJson = await db.queryTexture(
-      characterJson[DbHelper.characterHairstyleTextureCol],
-    );
-    final outfitTextureJson = await db.queryTexture(
-      characterJson[DbHelper.characterOutfitTextureCol],
-    );
-
-    return CharacterData.fromJson(
-      characterJson,
-      bodyTexture: Addon.fromJson(bodyTextureJson!),
-      eyeTexture: Addon.fromJson(eyesTextureJson!),
-      hairstyleTexture: Addon.fromJson(hairstyleTextureJson!),
-      outfitTexture: Addon.fromJson(outfitTextureJson!),
-    );
+    final characterData = CharacterData.fromJson(characterJson);
+    await characterData._loadTexturesFromJSON(characterJson);
+    return characterData;
   }
 
   /// Convert this class into it's JSON equivalent.

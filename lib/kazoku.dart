@@ -34,7 +34,7 @@ class Kazoku extends FlameGame with TapCallbacks {
     // TODO: Load any accessories
     final characterGenerator = CharacterGenerator();
     return CharacterComponent(
-      data: await characterGenerator.generateGeminiCharacter(),
+      data: await characterGenerator.generateGPTCharacter(),
     );
     // return CharacterComponent(
     //   data: (await CharacterData.loadCharacterFromId(1))!,
