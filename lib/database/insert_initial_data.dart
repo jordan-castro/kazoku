@@ -357,3 +357,11 @@ Future<void> addInitialCharacterTextures(Database db) async {
       (348, "Outfit 33", "outfit", "sprites/character/outfit/Outfit_33_32x32_03.png", "{'top_color': '#e7e5ec', 'bottom_color': '#b2bad4', 'type': 'dress', 'gender': 0}", 0)
     """);
 }
+
+Future<void> insertWorldItems(Database db) async {
+  await db.rawInsert("""
+    INSERT INTO ${DbHelper.worldItems} (${DbHelper.wit_IdCol}, ${DbHelper.wit_NameCol}, ${DbHelper.wit_CoordinatesCol}, ${DbHelper.wit_IsAnimated})
+    VALUES
+    (1, "long_table_left_border", "(5, 23);(31, 67)", 0)
+  """);
+}

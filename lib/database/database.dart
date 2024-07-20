@@ -16,7 +16,7 @@ class DbHelper {
   // Table names
   static const charactersTable = "characters";
   static const characterTexturesTable = "characterTextures";
-  static const roomItemsTable = "worldItems";
+  static const worldItems = "worldItems";
   static const roomsTable = "rooms";
 
   // Column names
@@ -36,10 +36,10 @@ class DbHelper {
   static const ct_attributes = "attributes";
   static const ct_isForKid = "is_for_kid";
 
-  static const rit_IdCol = "id";
-  static const rit_NameCol = "name";
-  static const rit_CoordinatesCol = "coordinates";
-  static const rit_IsStatic = "is_static";
+  static const wit_IdCol = "id";
+  static const wit_NameCol = "name";
+  static const wit_CoordinatesCol = "coordinates";
+  static const wit_IsAnimated = "is_animated";
 
   // Singleton class this jaunt
   DbHelper._privateConstructor();
@@ -100,6 +100,15 @@ class DbHelper {
         $ct_TexturePath TEXT,
         $ct_attributes TEXT,
         $ct_isForKid INTEGER
+      )
+    """);
+
+    await db.execute("""
+      CREATE TABLE IF NOT EXISTS $worldItems (
+        $wit_IdCol INTEGER PRIMARY KEY,
+        $with_NameCol TEXT,
+        $wit_CoordinatesCol TEXT,
+        $wit_IsAnimated INTEGER
       )
     """);
 
