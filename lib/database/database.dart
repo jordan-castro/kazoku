@@ -14,9 +14,17 @@ class DbHelper {
   static const _databaseVersion = 1;
 
   // Table names
+  /// The table which holds all characters including our player.
   static const charactersTable = "characters";
+  /// The table that holds the character textures.
   static const characterTexturesTable = "characterTextures";
+  /// The table which holds the world items.
   static const worldItems = "worldItems";
+  /// The table which holds the animated items.
+  static const animatedWorldItems = "animatedItems";
+  /// The table which holds the room textures objects (think floors, walls, etc)
+  static const roomTextures = "roomTextures";
+  /// The table which holds the configuration of every room.
   static const roomsTable = "rooms";
 
   // Column names
@@ -39,7 +47,6 @@ class DbHelper {
   static const wit_IdCol = "id";
   static const wit_NameCol = "name";
   static const wit_CoordinatesCol = "coordinates";
-  static const wit_IsAnimated = "is_animated";
 
   // Singleton class this jaunt
   DbHelper._privateConstructor();
@@ -106,9 +113,8 @@ class DbHelper {
     await db.execute("""
       CREATE TABLE IF NOT EXISTS $worldItems (
         $wit_IdCol INTEGER PRIMARY KEY,
-        $with_NameCol TEXT,
-        $wit_CoordinatesCol TEXT,
-        $wit_IsAnimated INTEGER
+        $wit_NameCol TEXT,
+        $wit_CoordinatesCol TEXT
       )
     """);
 

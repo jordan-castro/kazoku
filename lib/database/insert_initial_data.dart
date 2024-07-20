@@ -360,8 +360,12 @@ Future<void> addInitialCharacterTextures(Database db) async {
 
 Future<void> insertWorldItems(Database db) async {
   await db.rawInsert("""
-    INSERT INTO ${DbHelper.worldItems} (${DbHelper.wit_IdCol}, ${DbHelper.wit_NameCol}, ${DbHelper.wit_CoordinatesCol}, ${DbHelper.wit_IsAnimated})
+    INSERT INTO ${DbHelper.worldItems} (${DbHelper.wit_IdCol}, ${DbHelper.wit_NameCol}, ${DbHelper.wit_CoordinatesCol})
     VALUES
-    (1, "long_table_left_border", "(5, 23);(31, 67)", 0)
+    (1, "long_table_corner_top_left", "(6,24);(31,67)"),
+    (2, "long_table_left", "(6,67);(31, 95)"),
+    (3, "long_table_corner_bottom_left", "(6,95);(31,131)"),
+    (4, "long_table_bottom", "(32,96);(63,131)"),
+    (5, "long_table", "")
   """);
 }
