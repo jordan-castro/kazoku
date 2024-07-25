@@ -2,7 +2,9 @@
 
 import 'dart:io';
 
-import 'package:kazoku/database/insert_initial_data.dart';
+import 'package:kazoku/database/insert_character_textures.dart';
+import 'package:kazoku/database/insert_floor_tiles.dart';
+import 'package:kazoku/database/insert_floors.dart';
 import 'package:kazoku/utils/json.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,16 +18,21 @@ class DbHelper {
   // Table names
   /// The table which holds all characters including our player.
   static const charactersTable = "characters";
+
   /// The table that holds the character textures.
   static const characterTexturesTable = "characterTextures";
-  /// The table which holds the world items.
-  static const worldItems = "worldItems";
-  /// The table which holds the animated items.
-  static const animatedWorldItems = "animatedItems";
-  /// The table which holds the room textures objects (think floors, walls, etc)
-  static const roomTextures = "roomTextures";
-  /// The table which holds the configuration of every room.
-  static const roomsTable = "rooms";
+
+  /// The table which holds the map for every KazuFloor.
+  static const kazuFloorsMapTable = "kazuFloorsMap";
+
+  /// floor tiles.
+  static const floorTilesTable = "floor_tiles";
+
+  /// Animated objects
+  static const animatedObjectsTable = "animated_objects";
+
+  /// Static objects
+  static const staticObjectsTable = "static_objects";
 
   // Column names
   static const characterIdCol = "id";
@@ -44,14 +51,29 @@ class DbHelper {
   static const ct_attributes = "attributes";
   static const ct_isForKid = "is_for_kid";
 
-  static const wit_IdCol = "id";
-  static const wit_NameCol = "name";
-  static const wit_CoordinatesCol = "coordinates";
+  static const kfm_IdCol = "id";
+  static const kfm_Name = "name";
+  static const kfm_FloorNumber = "floor_number";
+  static const kfm_Map = "map";
+
+  static const ft_IdCol = "id";
+  static const ft_Source = "source";
+  static const ft_Coords = "coords";
+
+  static const ao_IdCol = "id";
+  static const ao_Name = "name";
+  static const ao_Source = "source";
+
+  static const so_IdCol = "id";
+  static const so_Name = "name";
+  static const so_Source = "source";
 
   // Singleton class this jaunt
   DbHelper._privateConstructor();
 
   static final DbHelper instance = DbHelper._privateConstructor();
+
+  bool initialized = false;
 
   // only one system wide refrence in game
   static Database? _database;
@@ -74,13 +96,16 @@ class DbHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
 
-    return await openDatabase(
+    var db = await openDatabase(
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onDowngrade: _onUpgrade,
     );
+
+    initialized = true;
+    return db;
   }
 
   // SQL code to create the database table
@@ -89,32 +114,57 @@ class DbHelper {
     await db.execute("""
       CREATE TABLE IF NOT EXISTS $charactersTable (
         $characterIdCol INTEGER PRIMARY KEY,
-        $characterNameCol TEXT,
-        $characterGenderCol INTEGER,
-        $characterAgeCol INTEGER,
-        $characterBodyTextureCol INTEGER,
-        $characterEyesTextureCol INTEGER,
+        $characterNameCol TEXT NOT NULL,
+        $characterGenderCol INTEGER NOT NULL,
+        $characterAgeCol INTEGER NOT NULL,
+        $characterBodyTextureCol INTEGER NOT NULL,
+        $characterEyesTextureCol INTEGER NOT NULL,
         $characterHairstyleTextureCol INTEGER,
-        $characterOutfitTextureCol INTEGER
+        $characterOutfitTextureCol INTEGER NOT NULL
       )
     """);
 
     await db.execute("""
       CREATE TABLE IF NOT EXISTS $characterTexturesTable (
         $ct_IdCol INTEGER PRIMARY KEY,
-        $ct_NameCol TEXT,
-        $ct_TypeCol TEXT,
-        $ct_TexturePath TEXT,
-        $ct_attributes TEXT,
-        $ct_isForKid INTEGER
+        $ct_NameCol TEXT NOT NULL,
+        $ct_TypeCol TEXT NOT NULL,
+        $ct_TexturePath TEXT NOT NULL,
+        $ct_attributes TEXT NOT NULL,
+        $ct_isForKid INTEGER NOT NULL
       )
     """);
 
     await db.execute("""
-      CREATE TABLE IF NOT EXISTS $worldItems (
-        $wit_IdCol INTEGER PRIMARY KEY,
-        $wit_NameCol TEXT,
-        $wit_CoordinatesCol TEXT
+      CREATE TABLE IF NOT EXISTS $kazuFloorsMapTable (
+        $kfm_IdCol INTEGER PRIMARY KEY,
+        $kfm_Name TEXT NOT NULL,
+        $kfm_FloorNumber TEXT NOT NULL,
+        $kfm_Map TEXT NOT NULL
+      )
+    """);
+
+    await db.execute("""
+      CREATE TABLE IF NOT EXISTS $floorTilesTable (
+        $ft_IdCol INTEGER PRIMARY KEY,
+        $ft_Source TEXT NOT NULL,
+        $ft_Coords TEXT NOT NULL
+      )
+    """);
+
+    await db.execute("""
+      CREATE TABLE IF NOT EXISTS $animatedObjectsTable (
+        $ao_IdCol INTEGER PRIMARY KEY,
+        $ao_Name TEXT NOT NULL,
+        $ao_Source TEXT NOT NULL
+      )
+    """);
+
+    await db.execute("""
+      CREATE TABLE IF NOT EXISTS $staticObjectsTable (
+        $so_IdCol INTEGER PRIMARY KEY,
+        $so_Name TEXT NOT NULL,
+        $so_Source TEXT NOT NULL
       )
     """);
 
@@ -133,6 +183,9 @@ class DbHelper {
     print("Added character");
 
     await addInitialCharacterTextures(db);
+    await insertFloors(db);
+    await insertFloorTiles(db);
+
     // await _addNames();
     print("on_create finish");
   }
@@ -145,6 +198,10 @@ class DbHelper {
     // await db.execute("DROP TABLE $charactersTable");
     await db.execute("DROP TABLE IF EXISTS $characterTexturesTable");
     await db.execute("DROP TABLE IF EXISTS $charactersTable");
+    await db.execute("DROP TABLE IF EXISTS $kazuFloorsMapTable");
+    await db.execute("DROP TABLE IF EXISTS $floorTilesTable");
+    await db.execute("DROP TABLE IF EXISTS $animatedObjectsTable");
+    await db.execute("DROP TABLE IF EXISTS $staticObjectsTable");
 
     _onCreate(db, newVersion);
   }
@@ -198,5 +255,32 @@ class DbHelper {
   Future<int> updateTableValue(String tableName, JSON data) async {
     Database db = await instance.database;
     return db.update(tableName, data, where: "id = ${data['id']}");
+  }
+
+  /// Return a floor tile JSON.
+  Future<JSON?> queryFloorTile(int tileId) async {
+    Database db = await instance.database;
+    final row = await db.query(
+      floorTilesTable,
+      where: "$ft_IdCol = $tileId",
+    );
+    if (row.isEmpty) {
+      return null;
+    }
+    return row.first;
+  }
+
+  /// Return data from a KazuFloor
+  Future<JSON?> queryFloor(int floorId) async {
+    Database db = await instance.database;
+    final row = await db.query(
+      kazuFloorsMapTable,
+      where: "$kfm_IdCol = $floorId",
+    );
+    if (row.isEmpty) {
+      return null;
+    }
+
+    return row.first;
   }
 }

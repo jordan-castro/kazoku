@@ -5,7 +5,6 @@ import 'package:kazoku/overlays/room_editor.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  print("Kazoku Start");
 
   runApp(
     GameWidget(
@@ -18,11 +17,6 @@ void main() {
       overlayBuilderMap: {
         RoomEditorOverlay.overlay: (context, game) => RoomEditorOverlay(),
       },
-      // overlayBuilderMap: {
-      //   CharacterBuilder.name: (context, game) => CharacterBuilder(
-      //         game: game as Kazoku,
-      //       ),
-      // },
     ),
   );
 }
