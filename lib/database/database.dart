@@ -34,6 +34,9 @@ class DbHelper {
   /// Static objects
   static const staticObjectsTable = "static_objects";
 
+  /// Object headers (animated and static)
+  static const objectHeadersTable = "object_headers";
+
   // Column names
   static const characterIdCol = "id";
   static const characterNameCol = "name";
@@ -63,10 +66,15 @@ class DbHelper {
   static const ao_IdCol = "id";
   static const ao_Name = "name";
   static const ao_Source = "source";
+  static const ao_HeaderId = "header_id";
 
   static const so_IdCol = "id";
   static const so_Name = "name";
   static const so_Source = "source";
+  static const so_HeaderId = "header_id";
+
+  static const oh_IdCol = "id";
+  static const oh_title = "title";
 
   // Singleton class this jaunt
   DbHelper._privateConstructor();
@@ -156,7 +164,8 @@ class DbHelper {
       CREATE TABLE IF NOT EXISTS $animatedObjectsTable (
         $ao_IdCol INTEGER PRIMARY KEY,
         $ao_Name TEXT NOT NULL,
-        $ao_Source TEXT NOT NULL
+        $ao_Source TEXT NOT NULL,
+        $ao_HeaderId INTEGER
       )
     """);
 
@@ -165,6 +174,14 @@ class DbHelper {
         $so_IdCol INTEGER PRIMARY KEY,
         $so_Name TEXT NOT NULL,
         $so_Source TEXT NOT NULL
+        $ao_HeaderId INTEGER
+      )
+    """);
+
+    await db.execute("""
+      CREATE TABLE IF NOT EXISTS $objectHeadersTable (
+        $oh_IdCol INTEGER PRIMARY KEY,
+        $oh_title TEXT NOT NULL
       )
     """);
 
