@@ -29,7 +29,7 @@ class Kazoku extends FlameGame with TapCallbacks {
 
     player.position = Vector2(size.x / 2, size.y / 2);
 
-    // overlays.add(RoomEditorOverlay.overlay);
+    overlays.add(RoomEditorOverlay.overlay);
   }
 
   /// Load the player character.

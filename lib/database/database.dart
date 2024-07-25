@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:kazoku/database/insert_character_textures.dart';
 import 'package:kazoku/database/insert_floor_tiles.dart';
 import 'package:kazoku/database/insert_floors.dart';
+import 'package:kazoku/database/insert_object_headers.dart';
+import 'package:kazoku/database/object_type.dart';
 import 'package:kazoku/utils/json.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,7 +15,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DbHelper {
   static const _databaseName = "Kazoku.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 3;
 
   // Table names
   /// The table which holds all characters including our player.
@@ -62,6 +64,7 @@ class DbHelper {
   static const ft_IdCol = "id";
   static const ft_Source = "source";
   static const ft_Coords = "coords";
+  static const ft_HeaderId = "header_id";
 
   static const ao_IdCol = "id";
   static const ao_Name = "name";
@@ -156,7 +159,8 @@ class DbHelper {
       CREATE TABLE IF NOT EXISTS $floorTilesTable (
         $ft_IdCol INTEGER PRIMARY KEY,
         $ft_Source TEXT NOT NULL,
-        $ft_Coords TEXT NOT NULL
+        $ft_Coords TEXT NOT NULL,
+        $ft_HeaderId INTEGER NOT NULL
       )
     """);
 
@@ -173,7 +177,7 @@ class DbHelper {
       CREATE TABLE IF NOT EXISTS $staticObjectsTable (
         $so_IdCol INTEGER PRIMARY KEY,
         $so_Name TEXT NOT NULL,
-        $so_Source TEXT NOT NULL
+        $so_Source TEXT NOT NULL,
         $ao_HeaderId INTEGER
       )
     """);
@@ -202,6 +206,7 @@ class DbHelper {
     await addInitialCharacterTextures(db);
     await insertFloors(db);
     await insertFloorTiles(db);
+    await insertObjectHeaders(db);
 
     // await _addNames();
     print("on_create finish");
@@ -219,6 +224,7 @@ class DbHelper {
     await db.execute("DROP TABLE IF EXISTS $floorTilesTable");
     await db.execute("DROP TABLE IF EXISTS $animatedObjectsTable");
     await db.execute("DROP TABLE IF EXISTS $staticObjectsTable");
+    await db.execute("DROP TABLE IF EXISTS $objectHeadersTable");
 
     _onCreate(db, newVersion);
   }
@@ -299,5 +305,58 @@ class DbHelper {
     }
 
     return row.first;
+  }
+
+  /// Query object headers
+  Future<List<JSON>?> queryObjectHeaders() async {
+    Database db = await instance.database;
+    final rows = await db.query(objectHeadersTable);
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    return rows;
+  }
+
+  /// Query objects/tiles/animated_objects with a objectheader.
+  Future<List<JSON>> queryObjects(int headerId, {ObjectType? oType}) async {
+    Database db = await instance.database;
+    final objectRows = await db.query(
+      staticObjectsTable,
+      where: "$so_HeaderId = $headerId",
+    );
+    if (oType == ObjectType.static) {
+      return objectRows;
+    }
+
+    final tileRows = await db.query(
+      floorTilesTable,
+      where: "$ft_HeaderId = $headerId",
+    );
+    if (oType == ObjectType.tile) {
+      return tileRows;
+    }
+
+    final animatedObjectRows = await db.query(
+      animatedObjectsTable,
+      where: "$ao_HeaderId = $headerId",
+    );
+    if (oType == ObjectType.animated) {
+      return animatedObjectRows;
+    }
+
+    List<JSON> rows = [];
+
+    if (objectRows.isNotEmpty) {
+      rows.addAll(objectRows);
+    }
+    if (tileRows.isNotEmpty) {
+      rows.addAll(tileRows);
+    }
+    if (animatedObjectRows.isNotEmpty) {
+      rows.addAll(animatedObjectRows);
+    }
+
+    return rows;
   }
 }

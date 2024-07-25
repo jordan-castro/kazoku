@@ -13,6 +13,7 @@ Future<void> insertFloorTiles(Database db) async {
       DbHelper.ft_Source:
           "kazu_floor_assets/tiles/Room_Builder_Floors_32x32.png",
       DbHelper.ft_Coords: "0,64;32,32",
+      DbHelper.ft_HeaderId: 1,
     },
   );
 }
