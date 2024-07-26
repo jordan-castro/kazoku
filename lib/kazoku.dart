@@ -56,6 +56,6 @@ class Kazoku extends FlameGame with TapCallbacks {
 
   /// Initialize the DB.
   Future<void> initializeDB() async {
-    await DbHelper.instance.queryCharacter(1);
+    await DbHelper.instance.initializeDatabase();
   }
 }

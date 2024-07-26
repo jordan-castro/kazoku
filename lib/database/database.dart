@@ -15,7 +15,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DbHelper {
   static const _databaseName = "Kazoku.db";
-  static const _databaseVersion = 3;
+  static const _databaseVersion = 2;
 
   // Table names
   /// The table which holds all characters including our player.
@@ -61,17 +61,17 @@ class DbHelper {
   static const kfm_FloorNumber = "floor_number";
   static const kfm_Map = "map";
 
-  static const ft_IdCol = "id";
+  static const ft_IdCol = "floor_tile_id";
   static const ft_Source = "source";
   static const ft_Coords = "coords";
   static const ft_HeaderId = "header_id";
 
-  static const ao_IdCol = "id";
+  static const ao_IdCol = "animated_object_id";
   static const ao_Name = "name";
   static const ao_Source = "source";
   static const ao_HeaderId = "header_id";
 
-  static const so_IdCol = "id";
+  static const so_IdCol = "static_object_id";
   static const so_Name = "name";
   static const so_Source = "source";
   static const so_HeaderId = "header_id";
@@ -83,8 +83,6 @@ class DbHelper {
   DbHelper._privateConstructor();
 
   static final DbHelper instance = DbHelper._privateConstructor();
-
-  bool initialized = false;
 
   // only one system wide refrence in game
   static Database? _database;
@@ -114,8 +112,6 @@ class DbHelper {
       onUpgrade: _onUpgrade,
       onDowngrade: _onUpgrade,
     );
-
-    initialized = true;
     return db;
   }
 
@@ -203,11 +199,6 @@ class DbHelper {
     });
     print("Added character");
 
-    await addInitialCharacterTextures(db);
-    await insertFloors(db);
-    await insertFloorTiles(db);
-    await insertObjectHeaders(db);
-
     // await _addNames();
     print("on_create finish");
   }
@@ -227,6 +218,30 @@ class DbHelper {
     await db.execute("DROP TABLE IF EXISTS $objectHeadersTable");
 
     _onCreate(db, newVersion);
+  }
+
+  Future<void> initializeDatabase() async {
+    Database db = await instance.database;
+    try {
+      await addInitialCharacterTextures(db);
+    } catch (e) {
+      print(e);
+    }
+    try {
+      await insertFloors(db);
+    } catch (e) {
+      print(e);
+    }
+    try {
+      await insertFloorTiles(db);
+    } catch (e) {
+      print(e);
+    }
+    try {
+      await insertObjectHeaders(db);
+    } catch (e) {
+      print(e);
+    }
   }
 
   /// Query a Character

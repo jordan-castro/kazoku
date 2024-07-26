@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kazoku/widgets/editor_items.dart';
 import 'package:kazoku/widgets/object_headers.dart';
+import 'package:kazoku/widgets/object_selector.dart';
 
 class KazuFloorBuilder extends StatefulWidget {
   const KazuFloorBuilder({super.key});
@@ -11,7 +11,7 @@ class KazuFloorBuilder extends StatefulWidget {
 }
 
 class _KazuFloorBuilderState extends State<KazuFloorBuilder> {
-  int currentHeaderType = 0;
+  int currentHeaderType = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -24,10 +24,14 @@ class _KazuFloorBuilderState extends State<KazuFloorBuilder> {
           ObjectHeadersWidget(
             index: currentHeaderType,
             onChange: (newType) {
-              setState(() => currentHeaderType = newType);
+              if (newType != currentHeaderType) {
+                setState(() => currentHeaderType = newType);
+              }
             },
           ),
-          // ObjectSelectorWidget(),
+          ObjectSelectorWidget(
+            headerId: currentHeaderType,
+          ),
         ],
       ),
     );
