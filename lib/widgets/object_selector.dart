@@ -1,28 +1,30 @@
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:kazoku/database/database.dart';
+import 'package:kazoku/kazoku.dart';
 import 'package:kazoku/widgets/texture_image_button.dart';
 
 class ObjectSelectorWidget extends StatelessWidget {
   final int headerId;
+  final Kazoku kazoku;
 
   const ObjectSelectorWidget({
     super.key,
     required this.headerId,
+    required this.kazoku,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100.0,
+      height: 125.0,
       color: Colors.blue[700],
       child: FutureBuilder(
         future: DbHelper.instance.queryObjects(headerId),
         builder: (context, snapshot) {
           if (!snapshot.hasError && !snapshot.hasData) {
-            return const CircularProgressIndicator(
-              strokeWidth: 10.0,
-            );
+            return const CircularProgressIndicator();
           } else if (snapshot.hasError && !snapshot.hasData) {
             return const Text("An error occured");
           }
@@ -65,11 +67,13 @@ class ObjectSelectorWidget extends StatelessWidget {
   Widget tileButton(Map<String, dynamic> element) {
     return TileImageButton(
       source: element[DbHelper.ft_Source],
-      height: 75.0,
-      width: 75.0,
+      height: 50.0,
+      width: 50.0,
       coords: element[DbHelper.ft_Coords],
-      fit: BoxFit.contain,
-      onPressed: () {},
+      fit: BoxFit.fill,
+      onPressed: () {
+        // kazoku.currentFloor.floor.tiles = [];
+      },
     );
   }
 }

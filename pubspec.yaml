@@ -82,6 +82,9 @@ flutter:
     - assets/images/sprites/character/hairstyle/
     - assets/images/sprites/character/outfit/
     - assets/images/kazu_floor_assets/tiles/
+    - assets/images/kazu_floor_assets/bedroom/
+    - assets/images/kazu_floor_assets/bathroom/
+    - assets/images/kazu_floor_assets/living_room/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

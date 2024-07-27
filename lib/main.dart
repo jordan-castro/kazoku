@@ -15,7 +15,9 @@ void main() {
         );
       },
       overlayBuilderMap: {
-        RoomEditorOverlay.overlay: (context, game) => RoomEditorOverlay(),
+        RoomEditorOverlay.overlay: (context, game) => RoomEditorOverlay(
+              kazoku: game as Kazoku,
+            ),
       },
     ),
   );

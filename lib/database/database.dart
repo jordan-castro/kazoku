@@ -6,6 +6,7 @@ import 'package:kazoku/database/insert_character_textures.dart';
 import 'package:kazoku/database/insert_floor_tiles.dart';
 import 'package:kazoku/database/insert_floors.dart';
 import 'package:kazoku/database/insert_object_headers.dart';
+import 'package:kazoku/database/insert_objects.dart';
 import 'package:kazoku/database/object_type.dart';
 import 'package:kazoku/utils/json.dart';
 import 'package:path/path.dart';
@@ -15,7 +16,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DbHelper {
   static const _databaseName = "Kazoku.db";
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 3;
 
   // Table names
   /// The table which holds all characters including our player.
@@ -239,6 +240,12 @@ class DbHelper {
     }
     try {
       await insertObjectHeaders(db);
+    } catch (e) {
+      print(e);
+    }
+
+    try {
+      await insertObjects(db);
     } catch (e) {
       print(e);
     }

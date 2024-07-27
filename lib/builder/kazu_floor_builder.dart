@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:kazoku/kazoku.dart';
 import 'package:kazoku/widgets/object_headers.dart';
 import 'package:kazoku/widgets/object_selector.dart';
 
 class KazuFloorBuilder extends StatefulWidget {
-  const KazuFloorBuilder({super.key});
+  final Kazoku kazoku;
+
+  const KazuFloorBuilder({super.key, required this.kazoku});
 
   @override
   State<KazuFloorBuilder> createState() => _KazuFloorBuilderState();
@@ -19,6 +22,7 @@ class _KazuFloorBuilderState extends State<KazuFloorBuilder> {
       backgroundColor: Colors.transparent,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
         children: [
           const Spacer(),
           ObjectHeadersWidget(
@@ -30,6 +34,7 @@ class _KazuFloorBuilderState extends State<KazuFloorBuilder> {
             },
           ),
           ObjectSelectorWidget(
+            kazoku: widget.kazoku,
             headerId: currentHeaderType,
           ),
         ],

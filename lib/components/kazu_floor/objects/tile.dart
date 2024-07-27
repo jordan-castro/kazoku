@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:kazoku/utils/convert_text_coords.dart';
 
 class TileComponent extends SpriteComponent {

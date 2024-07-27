@@ -44,4 +44,4 @@ app.*.map.json
 
 api_key.*
 
-/assets/
+/assets/images/

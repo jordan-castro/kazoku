@@ -6,7 +6,8 @@ import 'package:kazoku/utils/convert_text_coords.dart';
 
 /// This is for objects.
 class TextureImageButton extends StatelessWidget {
-  final String assetSource;
+  final String? assetSource;
+  final Uint8List? bytes;
   final double height;
   final double width;
   final BoxFit? fit;
@@ -14,23 +15,31 @@ class TextureImageButton extends StatelessWidget {
 
   const TextureImageButton({
     super.key,
-    required this.assetSource,
+    this.assetSource,
     required this.height,
     required this.width,
     this.fit,
     required this.onPressed,
+    this.bytes,
   });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      child: Image.asset(
-        "assets/images/$assetSource",
-        height: height,
-        width: width,
-        fit: fit,
-      ),
+      child: assetSource != null
+          ? Image.asset(
+              "assets/images/$assetSource",
+              height: height,
+              width: width,
+              fit: fit,
+            )
+          : Image.memory(
+              bytes!,
+              height: height,
+              width: width,
+              fit: fit,
+            ),
     );
   }
 }
@@ -83,29 +92,20 @@ class TileImageButton extends StatelessWidget {
       future: _loadAndCropImage(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return CircularProgressIndicator();
+          return SizedBox(
+            height: height,
+            width: width,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
-        return InkWell(
-          onTap: onPressed,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            child: Container(
-              margin: EdgeInsets.all(5.0),
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: Image.memory(
-                Uint8List.fromList(img.encodePng(snapshot.data!)),
-                width: width,
-                height: height,
-                fit: fit,
-              ),
-            ),
-          ),
+        return TextureImageButton(
+          bytes: Uint8List.fromList(img.encodePng(snapshot.data!)),
+          height: height,
+          width: width,
+          onPressed: onPressed,
+          fit: fit,
         );
       },
     );
